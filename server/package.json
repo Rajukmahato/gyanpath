@@ -29,6 +29,7 @@
     "qrcode": "^1.5.4",
     "rate-limit-redis": "^5.0.0",
     "speakeasy": "^2.0.0",
+    "stripe": "^22.3.0",
     "uuid": "^14.0.1",
     "zxcvbn": "^4.4.2"
   },
