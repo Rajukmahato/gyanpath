@@ -13,6 +13,7 @@ const profileSchema = new mongoose.Schema(
 const userSchema = new mongoose.Schema(
   {
     email: { type: String, required: true, lowercase: true, trim: true },
+    emailVerified: { type: Boolean, default: false },
     phone: { type: String, trim: true },
     passwordHash: { type: String, required: true },
     role: {

@@ -17,11 +17,20 @@
   "private": "true",
   "dependencies": {
     "argon2": "^0.44.0",
+    "cookie-parser": "^1.4.7",
     "cors": "^2.8.6",
     "dotenv": "^17.4.2",
     "express": "^5.2.1",
+    "express-rate-limit": "^8.5.2",
     "helmet": "^8.2.0",
-    "mongoose": "^9.7.3"
+    "ioredis": "^5.11.1",
+    "jsonwebtoken": "^9.0.3",
+    "mongoose": "^9.7.3",
+    "qrcode": "^1.5.4",
+    "rate-limit-redis": "^5.0.0",
+    "speakeasy": "^2.0.0",
+    "uuid": "^14.0.1",
+    "zxcvbn": "^4.4.2"
   },
   "devDependencies": {
     "mongodb-memory-server": "^11.2.0",
