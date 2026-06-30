@@ -1,0 +1,55 @@
+node_modules/
+
+# env files - all variants ignored except the committed example
+.env
+.env.*
+!.env.example
+
+# build output
+dist/
+build/
+.vite/
+
+# logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+# test / coverage
+coverage/
+.nyc_output/
+
+# local object storage (videos, generated certificate PDFs, uploads)
+uploads/
+storage/
+
+# keys / secrets that should never be hand-placed in the repo
+*.pem
+*.key
+*.crt
+*.p12
+secrets/
+
+# os
+.DS_Store
+._*
+Thumbs.db
+
+# editor
+.vscode/*
+!.vscode/extensions.json
+.idea/
+*.swp
+*.swo
+*~
+
+# misc
+*.bak
+.eslintcache
+.node_repl_history
+tmp/
+
+# planning notes, not part of the deliverable
+*.md
