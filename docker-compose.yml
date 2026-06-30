@@ -1,11 +1,4 @@
 services:
-  mongo:
-    image: mongo:7
-    ports:
-      - "27017:27017"
-    volumes:
-      - mongo_data:/data/db
-
   redis:
     image: redis:7-alpine
     ports:
@@ -15,7 +8,6 @@ services:
     build: ./server
     env_file: ./server/.env
     environment:
-      MONGO_URI: mongodb://mongo:27017/gyanpath
       REDIS_URL: redis://redis:6379
     ports:
       - "4000:4000"
@@ -23,7 +15,6 @@ services:
       - ./server:/app
       - /app/node_modules
     depends_on:
-      - mongo
       - redis
 
   client:
@@ -36,6 +27,3 @@ services:
       - /app/node_modules
     depends_on:
       - server
-
-volumes:
-  mongo_data:
