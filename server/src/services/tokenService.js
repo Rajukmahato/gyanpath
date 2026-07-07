@@ -9,6 +9,10 @@ function familyKey(familyId) {
   return `refresh:family:${familyId}`
 }
 
+function familyIpKey(familyId) {
+  return `refresh:family:ip:${familyId}`
+}
+
 function userSessionsKey(userId) {
   return `refresh:user:${userId}`
 }
@@ -23,7 +27,6 @@ export function verifyAccessToken(token) {
   return jwt.verify(token, process.env.JWT_SECRET)
 }
 
-// Short-lived token issued after password check when MFA is enabled, before the TOTP step.
 export function signMfaChallenge(userId) {
   return jwt.sign({ sub: userId, type: 'mfa_challenge' }, process.env.JWT_SECRET, { expiresIn: '5m' })
 }
@@ -34,13 +37,33 @@ export function verifyMfaChallenge(token) {
   return payload
 }
 
-// Issues a new refresh-token family for a fresh login.
-export async function createRefreshSession(userId) {
+// Returns the /24 subnet string for IPv4 or /48 for IPv6, used for drift detection.
+// Loopback and private-only sessions are not bound (development traffic).
+function ipSubnet(ip) {
+  if (!ip) return null
+  // Strip IPv4-mapped IPv6 prefix
+  const raw = ip.replace(/^::ffff:/, '')
+  if (raw === '127.0.0.1' || raw === '::1') return null // loopback — skip binding
+  if (/^\d+\.\d+\.\d+\.\d+$/.test(raw)) {
+    // IPv4: bind to /24
+    const parts = raw.split('.')
+    return `${parts[0]}.${parts[1]}.${parts[2]}`
+  }
+  // IPv6: bind to first 4 groups (/64 equivalent)
+  const groups = raw.split(':').slice(0, 4).join(':')
+  return groups || null
+}
+
+export async function createRefreshSession(userId, ip) {
   const familyId = randomUUID()
   const tokenId = randomUUID()
   const redis = getRedis()
+  const subnet = ipSubnet(ip)
 
   await redis.set(familyKey(familyId), tokenId, 'EX', REFRESH_TOKEN_TTL_SECONDS)
+  if (subnet) {
+    await redis.set(familyIpKey(familyId), subnet, 'EX', REFRESH_TOKEN_TTL_SECONDS)
+  }
   await redis.sadd(userSessionsKey(userId), familyId)
   await redis.expire(userSessionsKey(userId), REFRESH_TOKEN_TTL_SECONDS)
 
@@ -53,9 +76,7 @@ function signRefreshToken({ userId, familyId, tokenId }) {
   })
 }
 
-// Verifies + rotates a refresh token. Reusing an already-rotated token revokes the whole family
-// (signals theft) rather than silently failing.
-export async function rotateRefreshToken(token) {
+export async function rotateRefreshToken(token, ip) {
   const payload = jwt.verify(token, process.env.JWT_REFRESH_SECRET)
   const { sub: userId, familyId, tokenId } = payload
   const redis = getRedis()
@@ -69,8 +90,24 @@ export async function rotateRefreshToken(token) {
     throw err
   }
 
+  // IP subnet drift check
+  const storedSubnet = await redis.get(familyIpKey(familyId))
+  if (storedSubnet) {
+    const currentSubnet = ipSubnet(ip)
+    if (currentSubnet && currentSubnet !== storedSubnet) {
+      // Revoke this session — different network, possible session hijack
+      await redis.del(familyKey(familyId), familyIpKey(familyId))
+      const err = new Error('session IP mismatch — please log in again')
+      err.code = 'IP_MISMATCH'
+      throw err
+    }
+  }
+
   const newTokenId = randomUUID()
   await redis.set(familyKey(familyId), newTokenId, 'EX', REFRESH_TOKEN_TTL_SECONDS)
+  if (storedSubnet) {
+    await redis.set(familyIpKey(familyId), storedSubnet, 'EX', REFRESH_TOKEN_TTL_SECONDS)
+  }
 
   return {
     userId,
@@ -81,9 +118,9 @@ export async function rotateRefreshToken(token) {
 export async function revokeRefreshFamily(token) {
   try {
     const { familyId } = jwt.verify(token, process.env.JWT_REFRESH_SECRET)
-    await getRedis().del(familyKey(familyId))
+    await getRedis().del(familyKey(familyId), familyIpKey(familyId))
   } catch {
-    // already invalid/expired - nothing to revoke
+    // already invalid/expired
   }
 }
 
@@ -91,7 +128,8 @@ export async function revokeAllUserSessions(userId) {
   const redis = getRedis()
   const families = await redis.smembers(userSessionsKey(userId))
   if (families.length) {
-    await redis.del(...families.map(familyKey))
+    const keys = families.flatMap((f) => [familyKey(f), familyIpKey(f)])
+    await redis.del(...keys)
   }
   await redis.del(userSessionsKey(userId))
 }

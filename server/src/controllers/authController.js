@@ -3,6 +3,7 @@ import { getRedis } from '../config/redis.js'
 import { hashPassword, verifyPassword, wasRecentlyUsed, pushRecentPasswordHash } from '../utils/password.js'
 import { checkPasswordStrength } from '../utils/passwordPolicy.js'
 import { issueOtp, verifyOtp } from '../services/otpService.js'
+import { sendOtpEmail, isEmailConfigured } from '../services/emailService.js'
 import { generateMfaSecret, getQrCodeDataUrl, verifyMfaToken } from '../services/mfaService.js'
 import {
   signAccessToken,
@@ -15,35 +16,48 @@ import {
 } from '../services/tokenService.js'
 import { setRefreshCookie, clearRefreshCookie, REFRESH_COOKIE_NAME } from '../utils/cookies.js'
 import { logAction } from '../services/auditService.js'
+import { flagBurst } from '../services/alertService.js'
 
 const LOGIN_FAIL_LIMIT = 5
+const LOGIN_FAIL_CAPTCHA_THRESHOLD = 3  // show CAPTCHA after this many failures
 const LOGIN_FAIL_WINDOW_SECONDS = 15 * 60
+const HCAPTCHA_SECRET = process.env.HCAPTCHA_SECRET_KEY || '0x0000000000000000000000000000000000000000' // test secret
 
 function loginFailKey(email) {
   return `loginfail:${email}`
 }
 
 async function recordLoginFailure(email) {
-  const redis = getRedis()
-  const key = loginFailKey(email)
-  const count = await redis.incr(key)
-  if (count === 1) await redis.expire(key, LOGIN_FAIL_WINDOW_SECONDS)
-  return count
+  return flagBurst(loginFailKey(email), {
+    windowSeconds: LOGIN_FAIL_WINDOW_SECONDS,
+    threshold: LOGIN_FAIL_LIMIT,
+    message: `Repeated failed logins for ${email} — account temporarily locked`,
+  })
 }
 
-async function issueSession(res, user) {
+async function issueSession(res, user, ip) {
   const accessToken = signAccessToken(user)
-  const refreshToken = await createRefreshSession(String(user._id))
+  const refreshToken = await createRefreshSession(String(user._id), ip)
   setRefreshCookie(res, refreshToken)
   return accessToken
 }
 
-export async function register(req, res) {
-  const { email, password, name } = req.body
+// email the code when Gmail is configured; otherwise log it so dev flows still work
+async function deliverOtp(email, code, purpose) {
+  const sent = await sendOtpEmail(email, code, purpose).catch(() => false)
+  if (!sent) console.log(`[dev] ${purpose} OTP for ${email}: ${code}`)
+}
 
-  if (!email || !password) {
+export async function register(req, res) {
+  const { email, password, name, role } = req.body
+
+  if (typeof email !== 'string' || typeof password !== 'string') {
     return res.status(400).json({ error: 'email and password are required' })
   }
+
+  // a new user may sign up as a learner or an instructor; privileged roles
+  // (moderator/admin) can never be self-assigned through registration
+  const safeRole = role === 'instructor' ? 'instructor' : 'student'
 
   const strength = checkPasswordStrength(password)
   if (!strength.ok) {
@@ -59,16 +73,35 @@ export async function register(req, res) {
   const user = await User.create({
     email: email.toLowerCase(),
     passwordHash,
+    role: safeRole,
     profile: { name },
   })
 
   const code = await issueOtp(`register:${user.email}`)
-  console.log(`[dev] registration OTP for ${user.email}: ${code}`)
+  await deliverOtp(user.email, code, 'register')
 
   await logAction({ actor: user._id, role: user.role, action: 'register', resourceType: 'User', resourceId: user._id, ip: req.ip, status: 'success' })
 
-  const devOtp = process.env.NODE_ENV !== 'production' ? { devOtp: code } : {}
+  // only surface the code in the response when there's no real email delivery (dev)
+  const devOtp = process.env.NODE_ENV !== 'production' && !isEmailConfigured() ? { devOtp: code } : {}
   res.status(201).json({ message: 'registered, verify OTP to activate account', ...devOtp })
+}
+
+export async function resendRegistrationOtp(req, res) {
+  const { email } = req.body
+  const user = typeof email === 'string' ? await User.findOne({ email: email.toLowerCase() }) : null
+
+  // respond the same way whether or not the account exists / is already verified,
+  // so this can't be used to probe which emails are registered
+  if (user && !user.emailVerified) {
+    const code = await issueOtp(`register:${user.email}`)
+    await deliverOtp(user.email, code, 'register')
+    if (process.env.NODE_ENV !== 'production' && !isEmailConfigured()) {
+      return res.json({ message: 'a new code has been sent', devOtp: code })
+    }
+  }
+
+  res.json({ message: 'a new code has been sent' })
 }
 
 export async function verifyRegistrationOtp(req, res) {
@@ -87,16 +120,37 @@ export async function verifyRegistrationOtp(req, res) {
   res.json({ message: 'email verified' })
 }
 
+async function verifyCaptcha(token) {
+  if (!token) return false
+  try {
+    const params = new URLSearchParams({ secret: HCAPTCHA_SECRET, response: token })
+    const r = await fetch('https://hcaptcha.com/siteverify', { method: 'POST', body: params })
+    const data = await r.json()
+    return data.success === true
+  } catch {
+    return false
+  }
+}
+
 export async function login(req, res) {
-  const { email, password } = req.body
-  if (!email || !password) {
+  const { email, password, captchaToken } = req.body
+  if (typeof email !== 'string' || typeof password !== 'string') {
     return res.status(400).json({ error: 'email and password are required' })
   }
 
   const normalizedEmail = email.toLowerCase()
-  const failCount = await getRedis().get(loginFailKey(normalizedEmail))
-  if (Number(failCount) >= LOGIN_FAIL_LIMIT) {
+  const failCount = Number(await getRedis().get(loginFailKey(normalizedEmail)) || 0)
+
+  if (failCount >= LOGIN_FAIL_LIMIT) {
     return res.status(423).json({ error: 'account temporarily locked, try again later' })
+  }
+
+  // require a valid CAPTCHA once the account has had too many failures
+  if (failCount >= LOGIN_FAIL_CAPTCHA_THRESHOLD) {
+    const captchaOk = await verifyCaptcha(captchaToken)
+    if (!captchaOk) {
+      return res.status(400).json({ error: 'captcha required', captchaRequired: true })
+    }
   }
 
   const user = await User.findOne({ email: normalizedEmail })
@@ -105,7 +159,11 @@ export async function login(req, res) {
   if (!valid) {
     if (user) await recordLoginFailure(normalizedEmail)
     await logAction({ actor: user?._id, role: user?.role, action: 'login', resourceType: 'User', resourceId: user?._id, ip: req.ip, status: 'failure' })
-    return res.status(401).json({ error: 'invalid credentials' })
+    const newCount = failCount + 1
+    return res.status(401).json({
+      error: 'invalid credentials',
+      captchaRequired: newCount >= LOGIN_FAIL_CAPTCHA_THRESHOLD,
+    })
   }
 
   if (!user.emailVerified) {
@@ -119,7 +177,7 @@ export async function login(req, res) {
     return res.json({ mfaRequired: true, mfaToken })
   }
 
-  const accessToken = await issueSession(res, user)
+  const accessToken = await issueSession(res, user, req.ip)
   await logAction({ actor: user._id, role: user.role, action: 'login', resourceType: 'User', resourceId: user._id, ip: req.ip, status: 'success' })
 
   res.json({ accessToken, user: { id: user._id, email: user.email, role: user.role } })
@@ -144,13 +202,15 @@ export async function verifyMfaLogin(req, res) {
     return res.status(401).json({ error: 'invalid mfa code' })
   }
 
-  const accessToken = await issueSession(res, user)
+  const accessToken = await issueSession(res, user, req.ip)
   await logAction({ actor: user._id, role: user.role, action: 'mfa_verify', resourceType: 'User', resourceId: user._id, ip: req.ip, status: 'success' })
 
   res.json({ accessToken, user: { id: user._id, email: user.email, role: user.role } })
 }
 
 export async function setupMfa(req, res) {
+  // never allow setup while MFA is already enabled — the user must disable first
+  if (req.user.mfaEnabled) return res.status(409).json({ error: 'mfa already enabled, disable it first to re-setup' })
   const { base32, otpauthUrl } = generateMfaSecret(req.user.email)
   req.user.mfaSecret = base32
   await req.user.save()
@@ -173,12 +233,27 @@ export async function enableMfa(req, res) {
   res.json({ message: 'mfa enabled' })
 }
 
+export async function disableMfa(req, res) {
+  const { token } = req.body
+  if (!req.user.mfaEnabled) return res.status(400).json({ error: 'mfa is not enabled' })
+
+  if (!verifyMfaToken(req.user.mfaSecret, token)) {
+    return res.status(401).json({ error: 'invalid mfa code' })
+  }
+
+  req.user.mfaEnabled = false
+  req.user.mfaSecret = undefined
+  await req.user.save()
+
+  res.json({ message: 'mfa disabled' })
+}
+
 export async function refresh(req, res) {
   const token = req.cookies?.[REFRESH_COOKIE_NAME]
   if (!token) return res.status(401).json({ error: 'no refresh token' })
 
   try {
-    const { userId, refreshToken } = await rotateRefreshToken(token)
+    const { userId, refreshToken } = await rotateRefreshToken(token, req.ip)
     const user = await User.findById(userId)
     if (!user) return res.status(401).json({ error: 'user not found' })
 
@@ -189,13 +264,16 @@ export async function refresh(req, res) {
     if (err.code === 'REFRESH_REUSE') {
       return res.status(401).json({ error: 'session revoked, please log in again' })
     }
+    if (err.code === 'IP_MISMATCH') {
+      return res.status(401).json({ error: 'session expired due to network change, please log in again' })
+    }
     return res.status(401).json({ error: 'invalid refresh token' })
   }
 }
 
 export async function me(req, res) {
-  const { _id, email, role, profile, mfaEnabled, instructorVerified } = req.user
-  res.json({ id: _id, email, role, profile, mfaEnabled, instructorVerified })
+  const { _id, email, role, profile, mfaEnabled, instructorVerified, avatarUrl } = req.user
+  res.json({ id: _id, email, role, profile, mfaEnabled, instructorVerified, avatarUrl })
 }
 
 export async function logout(req, res) {
@@ -212,7 +290,7 @@ export async function requestPasswordReset(req, res) {
   // always respond the same way so the endpoint can't be used to enumerate registered emails
   if (user) {
     const code = await issueOtp(`pwreset:${user.email}`)
-    console.log(`[dev] password reset OTP for ${user.email}: ${code}`)
+    await deliverOtp(user.email, code, 'pwreset')
   }
 
   res.json({ message: 'if that email is registered, a reset code has been sent' })
