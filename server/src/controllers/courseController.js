@@ -123,7 +123,7 @@ export async function addLesson(req, res) {
   const course = await Course.findOne({ _id: req.params.id, instructorId: req.user._id })
   if (!course) return res.status(404).json({ error: 'not found' })
 
-  const { title, order, isPreview, durationSec, youtubeId, videoObjectKey, captionsUrl } = req.body
+  const { title, order, isPreview, durationSec, youtubeId, videoObjectKey, captionsUrl, transcript, audioObjectKey } = req.body
   const lesson = await Lesson.create({
     courseId: course._id,
     title,
@@ -133,6 +133,8 @@ export async function addLesson(req, res) {
     youtubeId,
     videoObjectKey,
     captionsUrl,
+    transcript,
+    audioObjectKey,
   })
 
   // give the course a cover image from its first video lesson, if it has none yet

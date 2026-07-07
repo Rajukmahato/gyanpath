@@ -1,6 +1,7 @@
 import { useRef, useState } from 'react'
 import { useNavigate, Link } from 'react-router-dom'
 import HCaptcha from '@hcaptcha/react-hcaptcha'
+import { Fingerprint } from 'lucide-react'
 import { useAuth } from '../hooks/useAuth.js'
 import AuthLayout from '../components/AuthLayout.jsx'
 import Input, { Label, PasswordInput } from '../components/ui/Input.jsx'
@@ -16,9 +17,25 @@ export default function Login() {
   const [loading, setLoading] = useState(false)
   const [captchaRequired, setCaptchaRequired] = useState(false)
   const [captchaToken, setCaptchaToken] = useState(null)
+  const [passkeyLoading, setPasskeyLoading] = useState(false)
   const captchaRef = useRef(null)
-  const { login } = useAuth()
+  const { login, loginWithPasskey } = useAuth()
   const navigate = useNavigate()
+
+  async function handlePasskey() {
+    setError(null)
+    setPasskeyLoading(true)
+    try {
+      await loginWithPasskey()
+      navigate('/')
+    } catch (err) {
+      // user cancelling the browser prompt throws NotAllowedError — don't alarm them
+      if (err.name === 'NotAllowedError' || err.name === 'AbortError') return
+      setError(err.body?.error || err.message || 'Passkey sign-in failed.')
+    } finally {
+      setPasskeyLoading(false)
+    }
+  }
 
   async function handleSubmit(e) {
     e.preventDefault()
@@ -39,7 +56,8 @@ export default function Login() {
         setError('Too many failed attempts — please complete the CAPTCHA to continue.')
         return
       }
-      if (data.mfaRequired) navigate('/mfa-challenge', { state: { mfaToken: data.mfaToken } })
+      if (data.passwordExpired) navigate('/change-expired-password', { state: { passwordChangeToken: data.passwordChangeToken } })
+      else if (data.mfaRequired) navigate('/mfa-challenge', { state: { mfaToken: data.mfaToken } })
       else navigate('/')
     } catch (err) {
       const body = err.body || {}
@@ -88,6 +106,24 @@ export default function Login() {
         <Button className="w-full" size="lg" type="submit" disabled={loading || (captchaRequired && !captchaToken)}>
           {loading ? 'Logging in…' : 'Log in'}
         </Button>
+
+        <div className="flex items-center gap-3">
+          <span className="h-px flex-1 bg-ink-200" />
+          <span className="text-xs text-ink-400">or</span>
+          <span className="h-px flex-1 bg-ink-200" />
+        </div>
+
+        <Button
+          type="button"
+          variant="outline"
+          size="lg"
+          className="w-full"
+          onClick={handlePasskey}
+          disabled={passkeyLoading}
+        >
+          <Fingerprint className="h-4 w-4" /> {passkeyLoading ? 'Waiting for passkey…' : 'Sign in with a passkey'}
+        </Button>
+
         <p className="text-center text-sm text-ink-500">
           New to GyanPath? <Link to="/register" className="font-medium text-brand-600 hover:underline">Create an account</Link>
         </p>

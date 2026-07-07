@@ -37,6 +37,18 @@ export function verifyMfaChallenge(token) {
   return payload
 }
 
+// Short-lived token issued when a valid login is blocked only because the password
+// has expired — it authorizes exactly one password change, nothing else.
+export function signPasswordChangeChallenge(userId) {
+  return jwt.sign({ sub: userId, type: 'pw_change' }, process.env.JWT_SECRET, { expiresIn: '10m' })
+}
+
+export function verifyPasswordChangeChallenge(token) {
+  const payload = jwt.verify(token, process.env.JWT_SECRET)
+  if (payload.type !== 'pw_change') throw new Error('not a password-change token')
+  return payload
+}
+
 // Returns the /24 subnet string for IPv4 or /48 for IPv6, used for drift detection.
 // Loopback and private-only sessions are not bound (development traffic).
 function ipSubnet(ip) {

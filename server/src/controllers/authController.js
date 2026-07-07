@@ -9,6 +9,8 @@ import {
   signAccessToken,
   signMfaChallenge,
   verifyMfaChallenge,
+  signPasswordChangeChallenge,
+  verifyPasswordChangeChallenge,
   createRefreshSession,
   rotateRefreshToken,
   revokeRefreshFamily,
@@ -22,6 +24,15 @@ const LOGIN_FAIL_LIMIT = 5
 const LOGIN_FAIL_CAPTCHA_THRESHOLD = 3  // show CAPTCHA after this many failures
 const LOGIN_FAIL_WINDOW_SECONDS = 15 * 60
 const HCAPTCHA_SECRET = process.env.HCAPTCHA_SECRET_KEY || '0x0000000000000000000000000000000000000000' // test secret
+// NIST SP 800-63B argues against mandatory rotation; the brief still requires it, so we
+// enforce 90 days but document the tension in the report.
+const PASSWORD_MAX_AGE_DAYS = 90
+const PASSWORD_MAX_AGE_MS = PASSWORD_MAX_AGE_DAYS * 24 * 60 * 60 * 1000
+
+function isPasswordExpired(user) {
+  if (!user.passwordChangedAt) return false
+  return Date.now() - new Date(user.passwordChangedAt).getTime() > PASSWORD_MAX_AGE_MS
+}
 
 function loginFailKey(email) {
   return `loginfail:${email}`
@@ -145,10 +156,13 @@ export async function login(req, res) {
     return res.status(423).json({ error: 'account temporarily locked, try again later' })
   }
 
-  // require a valid CAPTCHA once the account has had too many failures
+  // require a valid CAPTCHA once the account has had too many failures. Keep counting
+  // failures here too, so the hard lockout at LOGIN_FAIL_LIMIT stays reachable even
+  // while the CAPTCHA gate is active.
   if (failCount >= LOGIN_FAIL_CAPTCHA_THRESHOLD) {
     const captchaOk = await verifyCaptcha(captchaToken)
     if (!captchaOk) {
+      await recordLoginFailure(normalizedEmail)
       return res.status(400).json({ error: 'captcha required', captchaRequired: true })
     }
   }
@@ -172,9 +186,17 @@ export async function login(req, res) {
 
   await getRedis().del(loginFailKey(normalizedEmail))
 
+  // MFA-enabled accounts must clear the second factor before anything else — including
+  // the password-expiry gate — so a stolen password alone can never force a change
   if (user.mfaEnabled) {
     const mfaToken = signMfaChallenge(String(user._id))
     return res.json({ mfaRequired: true, mfaToken })
+  }
+
+  if (isPasswordExpired(user)) {
+    const passwordChangeToken = signPasswordChangeChallenge(String(user._id))
+    await logAction({ actor: user._id, role: user.role, action: 'password_expired', resourceType: 'User', resourceId: user._id, ip: req.ip, status: 'failure' })
+    return res.json({ passwordExpired: true, passwordChangeToken })
   }
 
   const accessToken = await issueSession(res, user, req.ip)
@@ -200,6 +222,13 @@ export async function verifyMfaLogin(req, res) {
   if (!verifyMfaToken(user.mfaSecret, token)) {
     await logAction({ actor: user._id, role: user.role, action: 'mfa_verify', resourceType: 'User', resourceId: user._id, ip: req.ip, status: 'failure' })
     return res.status(401).json({ error: 'invalid mfa code' })
+  }
+
+  // both factors are now satisfied, so an expired password can be safely forced to change
+  if (isPasswordExpired(user)) {
+    const passwordChangeToken = signPasswordChangeChallenge(String(user._id))
+    await logAction({ actor: user._id, role: user.role, action: 'password_expired', resourceType: 'User', resourceId: user._id, ip: req.ip, status: 'failure' })
+    return res.json({ passwordExpired: true, passwordChangeToken })
   }
 
   const accessToken = await issueSession(res, user, req.ip)
@@ -316,10 +345,50 @@ export async function confirmPasswordReset(req, res) {
 
   user.recentPasswordHashes = pushRecentPasswordHash(user.recentPasswordHashes, user.passwordHash)
   user.passwordHash = await hashPassword(newPassword)
+  user.passwordChangedAt = new Date()
   await user.save()
 
   await revokeAllUserSessions(String(user._id))
   await logAction({ actor: user._id, role: user.role, action: 'password_reset', resourceType: 'User', resourceId: user._id, ip: req.ip, status: 'success' })
+
+  res.json({ message: 'password updated, please log in again' })
+}
+
+// Completes a forced change after login reported the password expired. The short-lived
+// pw_change token stands in for re-auth, so no OTP round-trip is needed.
+export async function changeExpiredPassword(req, res) {
+  const { passwordChangeToken, newPassword } = req.body
+  if (!passwordChangeToken || !newPassword) {
+    return res.status(400).json({ error: 'passwordChangeToken and newPassword are required' })
+  }
+
+  let payload
+  try {
+    payload = verifyPasswordChangeChallenge(passwordChangeToken)
+  } catch {
+    return res.status(401).json({ error: 'invalid or expired change token' })
+  }
+
+  const user = await User.findById(payload.sub)
+  if (!user) return res.status(404).json({ error: 'user not found' })
+
+  const strength = checkPasswordStrength(newPassword)
+  if (!strength.ok) {
+    return res.status(400).json({ error: 'weak password', reasons: strength.reasons })
+  }
+
+  const allRecentHashes = [user.passwordHash, ...user.recentPasswordHashes]
+  if (await wasRecentlyUsed(allRecentHashes, newPassword)) {
+    return res.status(400).json({ error: 'password was used recently, choose a different one' })
+  }
+
+  user.recentPasswordHashes = pushRecentPasswordHash(user.recentPasswordHashes, user.passwordHash)
+  user.passwordHash = await hashPassword(newPassword)
+  user.passwordChangedAt = new Date()
+  await user.save()
+
+  await revokeAllUserSessions(String(user._id))
+  await logAction({ actor: user._id, role: user.role, action: 'password_change_forced', resourceType: 'User', resourceId: user._id, ip: req.ip, status: 'success' })
 
   res.json({ message: 'password updated, please log in again' })
 }

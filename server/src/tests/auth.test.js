@@ -82,20 +82,66 @@ test('register -> otp verify -> login -> access protected route', async () => {
   assert.equal(me.role, 'student')
 })
 
-test('rejects wrong password and locks out after repeated failures', async () => {
+test('can register as an instructor, but cannot self-assign a privileged role', async () => {
+  const instructorEmail = 'teacher@test.local'
+  const reg = await post('/api/auth/register', { email: instructorEmail, password: PASSWORD, role: 'instructor' })
+  await post('/api/auth/otp/verify', { email: instructorEmail, code: reg.body.devOtp })
+  const login = await post('/api/auth/login', { email: instructorEmail, password: PASSWORD })
+  assert.equal(login.body.user.role, 'instructor')
+
+  // attempting to register as admin must fall back to student
+  const sneakyEmail = 'sneaky@test.local'
+  const reg2 = await post('/api/auth/register', { email: sneakyEmail, password: PASSWORD, role: 'admin' })
+  await post('/api/auth/otp/verify', { email: sneakyEmail, code: reg2.body.devOtp })
+  const login2 = await post('/api/auth/login', { email: sneakyEmail, password: PASSWORD })
+  assert.equal(login2.body.user.role, 'student')
+})
+
+test('resend OTP lets a user recover after leaving the verify screen', async () => {
+  const email = 'resend@test.local'
+  await post('/api/auth/register', { email, password: PASSWORD })
+
+  const resend = await post('/api/auth/otp/resend', { email })
+  assert.equal(resend.status, 200)
+  assert.ok(resend.body.devOtp)
+
+  const verify = await post('/api/auth/otp/verify', { email, code: resend.body.devOtp })
+  assert.equal(verify.status, 200)
+})
+
+test('rejects a NoSQL operator-injection login payload instead of bypassing auth', async () => {
+  // the classic Mongo auth bypass: { email: { $ne: null }, password: { $ne: null } }
+  // must not return a session, and must fail cleanly (400) rather than crash (500)
+  const res = await post('/api/auth/login', { email: { $ne: null }, password: { $ne: null } })
+  assert.equal(res.status, 400)
+  assert.equal(res.body.accessToken, undefined)
+})
+
+test('rejects wrong password, then requires CAPTCHA, then locks out', async () => {
   const email = 'lockout@test.local'
   const reg = await post('/api/auth/register', { email, password: PASSWORD })
   await post('/api/auth/otp/verify', { email, code: reg.body.devOtp })
 
+  // the first 3 wrong attempts are plain 401 rejections
   let lastStatus
-  for (let i = 0; i < 5; i++) {
+  for (let i = 0; i < 3; i++) {
     const res = await post('/api/auth/login', { email, password: 'wrong-password' })
     lastStatus = res.status
   }
   assert.equal(lastStatus, 401)
 
-  const lockedRes = await post('/api/auth/login', { email, password: PASSWORD })
-  assert.equal(lockedRes.status, 423)
+  // after the CAPTCHA threshold, a missing/invalid CAPTCHA is rejected with 400
+  const captchaRes = await post('/api/auth/login', { email, password: 'wrong-password' })
+  assert.equal(captchaRes.status, 400)
+  assert.equal(captchaRes.body.captchaRequired, true)
+
+  // failures keep accruing behind the CAPTCHA gate until the hard lockout kicks in
+  let lockedStatus
+  for (let i = 0; i < 4; i++) {
+    const res = await post('/api/auth/login', { email, password: PASSWORD })
+    lockedStatus = res.status
+  }
+  assert.equal(lockedStatus, 423)
 })
 
 test('refresh token rotates, and reusing an old token revokes the session', async () => {

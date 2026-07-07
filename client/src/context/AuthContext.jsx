@@ -1,4 +1,5 @@
 import { createContext, useCallback, useEffect, useState } from 'react'
+import { startAuthentication } from '@simplewebauthn/browser'
 import { api, setAccessToken, refreshAccessToken } from '../api/client.js'
 import { setLanguage } from '../i18n/index.js'
 
@@ -39,6 +40,16 @@ export function AuthProvider({ children }) {
     const data = await api.login(body)
     if (data.mfaRequired) return data
     if (data.captchaRequired) return data
+    if (data.passwordExpired) return data
+    setAccessToken(data.accessToken)
+    applyUser(setUser, await api.me())
+    return data
+  }, [])
+
+  const loginWithPasskey = useCallback(async () => {
+    const { options, challengeHandle } = await api.passkeyLoginOptions()
+    const assertion = await startAuthentication({ optionsJSON: options })
+    const data = await api.passkeyLoginVerify({ assertion, challengeHandle })
     setAccessToken(data.accessToken)
     applyUser(setUser, await api.me())
     return data
@@ -46,6 +57,7 @@ export function AuthProvider({ children }) {
 
   const verifyMfaLogin = useCallback(async (mfaToken, token) => {
     const data = await api.verifyMfaLogin({ mfaToken, token })
+    if (data.passwordExpired) return data
     setAccessToken(data.accessToken)
     applyUser(setUser, await api.me())
     return data
@@ -64,7 +76,7 @@ export function AuthProvider({ children }) {
   }, [])
 
   return (
-    <AuthContext.Provider value={{ user, loading, login, verifyMfaLogin, logout, refreshUser }}>
+    <AuthContext.Provider value={{ user, loading, login, loginWithPasskey, verifyMfaLogin, logout, refreshUser }}>
       {children}
     </AuthContext.Provider>
   )

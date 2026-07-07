@@ -96,6 +96,15 @@ export const api = {
   logout: () => request('/api/auth/logout', { method: 'POST' }),
   requestPasswordReset: (body) => request('/api/auth/password-reset/request', { method: 'POST', body, auth: false }),
   confirmPasswordReset: (body) => request('/api/auth/password-reset/confirm', { method: 'POST', body, auth: false }),
+  changeExpiredPassword: (body) => request('/api/auth/password/change-expired', { method: 'POST', body, auth: false }),
+
+  // WebAuthn / passkeys
+  passkeyRegisterOptions: () => request('/api/auth/webauthn/register/options', { method: 'POST' }),
+  passkeyRegisterVerify: (body) => request('/api/auth/webauthn/register/verify', { method: 'POST', body }),
+  passkeyLoginOptions: () => request('/api/auth/webauthn/login/options', { method: 'POST', auth: false }),
+  passkeyLoginVerify: (body) => request('/api/auth/webauthn/login/verify', { method: 'POST', body, auth: false }),
+  listPasskeys: () => request('/api/auth/webauthn/passkeys'),
+  deletePasskey: (id) => request(`/api/auth/webauthn/passkeys/${id}`, { method: 'DELETE' }),
 
   listCourses: (category) => request(`/api/courses${category ? `?category=${category}` : ''}`, { auth: false }),
   getCourse: (id) => request(`/api/courses/${id}`, { auth: false }),

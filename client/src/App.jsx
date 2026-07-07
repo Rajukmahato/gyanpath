@@ -23,6 +23,7 @@ import MfaChallenge from './pages/MfaChallenge.jsx'
 import MfaSetup from './pages/MfaSetup.jsx'
 import ForgotPassword from './pages/ForgotPassword.jsx'
 import ResetPassword from './pages/ResetPassword.jsx'
+import ChangeExpiredPassword from './pages/ChangeExpiredPassword.jsx'
 import NotFound from './pages/NotFound.jsx'
 
 function App() {
@@ -39,6 +40,7 @@ function App() {
           <Route path="/mfa-challenge" element={<MfaChallenge />} />
           <Route path="/forgot-password" element={<ForgotPassword />} />
           <Route path="/reset-password" element={<ResetPassword />} />
+          <Route path="/change-expired-password" element={<ChangeExpiredPassword />} />
 
           <Route element={<RequireAuth />}>
             <Route path="/mfa-setup" element={<MfaSetup />} />
