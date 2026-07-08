@@ -4,6 +4,7 @@ import { Link, NavLink, useNavigate } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 import { Languages, LogOut, Menu, X } from 'lucide-react'
 import { useAuth } from '../hooks/useAuth.js'
+import { API_URL } from '../api/client.js'
 import { setLanguage } from '../i18n/index.js'
 import Logo from './Logo.jsx'
 import Button from './ui/Button.jsx'
@@ -75,7 +76,7 @@ export default function Header() {
               <Link to="/profile" className="flex items-center gap-2 rounded-lg px-2 py-1.5 hover:bg-ink-100">
                 {user.avatarUrl ? (
                   <img
-                    src={`${import.meta.env.VITE_API_URL}${user.avatarUrl}`}
+                    src={`${API_URL}${user.avatarUrl}`}
                     alt={user.email}
                     className="h-7 w-7 rounded-full object-cover ring-1 ring-brand-200"
                   />

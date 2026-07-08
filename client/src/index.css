@@ -1,1 +1,45 @@
 @import "tailwindcss";
+@import "@fontsource/inter/400.css";
+@import "@fontsource/inter/500.css";
+@import "@fontsource/inter/600.css";
+@import "@fontsource/manrope/600.css";
+@import "@fontsource/manrope/700.css";
+@import "@fontsource/manrope/800.css";
+
+@theme {
+  --font-sans: "Inter", ui-sans-serif, system-ui, sans-serif;
+  --font-display: "Manrope", ui-sans-serif, system-ui, sans-serif;
+
+  --color-brand-50: #fdf2f3;
+  --color-brand-100: #fbe1e4;
+  --color-brand-200: #f6c2c9;
+  --color-brand-300: #ec98a4;
+  --color-brand-400: #de6a7b;
+  --color-brand-500: #c8425a;
+  --color-brand-600: #9f1d35;
+  --color-brand-700: #84172c;
+  --color-brand-800: #651322;
+  --color-brand-900: #481019;
+
+  --color-gold-300: #f0d28a;
+  --color-gold-400: #e3ba52;
+  --color-gold-500: #d4a017;
+  --color-gold-600: #ab7e0f;
+
+  --color-ink-50: #f6f7f9;
+  --color-ink-100: #eceef2;
+  --color-ink-400: #6b7280;
+  --color-ink-600: #3f4654;
+  --color-ink-700: #2a2f38;
+  --color-ink-800: #1b1e25;
+  --color-ink-900: #0f1115;
+}
+
+body {
+  font-family: var(--font-sans);
+  color: var(--color-ink-800);
+}
+
+.font-display {
+  font-family: var(--font-display);
+}
