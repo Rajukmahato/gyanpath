@@ -1,0 +1,76 @@
+{
+  "brand": {
+    "name": "ज्ञानपथ",
+    "tagline": "ज्ञानको मार्ग"
+  },
+  "nav": {
+    "browse": "कोर्सहरू",
+    "myLearning": "मेरो सिकाइ",
+    "certificates": "मेरो प्रमाणपत्र",
+    "instructorDashboard": "प्रशिक्षक ड्यासबोर्ड",
+    "moderationQueue": "स्वीकृति सूची",
+    "payouts": "भुक्तानी",
+    "profile": "प्रोफाइल",
+    "login": "लग इन",
+    "register": "साइन अप",
+    "logout": "लग आउट"
+  },
+  "home": {
+    "heroEyebrow": "लोकसेवा · IELTS · कोडिङ · डिजाइन",
+    "heroTitle": "प्रमाणित नेपाली प्रशिक्षकहरूबाट सीप सिक्नुहोस्",
+    "heroSubtitle": "प्रगति ट्र्याकिङ र हस्ताक्षरित प्रमाणपत्रसहितका संरचित कोर्सहरू — रुपैयाँमा मूल्य निर्धारण।",
+    "heroCtaPrimary": "कोर्सहरू हेर्नुहोस्",
+    "heroCtaSecondary": "प्रशिक्षक बन्नुहोस्",
+    "statCourses": "कोर्सहरू",
+    "statInstructors": "प्रमाणित प्रशिक्षकहरू",
+    "statLearners": "सिकारुहरू",
+    "whyTitle": "नेपालका लागि बनाइएको",
+    "whyVerified": "प्रमाणित प्रशिक्षकहरू",
+    "whyVerifiedDesc": "हरेक प्रशिक्षक प्रकाशन गर्नु अघि समीक्षा गरिन्छ।",
+    "whySecure": "सुरक्षित सामग्री",
+    "whySecureDesc": "पाठहरू छोटो-अवधिका हस्ताक्षरित लिङ्कमार्फत मात्र हेर्न मिल्छ।",
+    "whyCertificates": "प्रमाणित प्रमाणपत्र",
+    "whyCertificatesDesc": "वास्तविक हेराइको आधारमा डिजिटल हस्ताक्षरित प्रमाणपत्र।",
+    "whyBandwidth": "कम-ब्यान्डविथमा पनि चल्ने",
+    "whyBandwidthDesc": "अडियो-मात्र मोड र अनुकूल गुणस्तर।",
+    "categoriesTitle": "श्रेणी अनुसार हेर्नुहोस्",
+    "featuredTitle": "विशेष कोर्सहरू"
+  },
+  "browse": {
+    "title": "सबै कोर्सहरू",
+    "searchPlaceholder": "कोर्स खोज्नुहोस्…",
+    "allCategories": "सबै श्रेणी",
+    "empty": "कुनै कोर्स फेला परेन",
+    "emptyDesc": "फरक खोजी प्रयास गर्नुहोस् वा पछि फेरि हेर्नुहोस्।"
+  },
+  "course": {
+    "enroll": "भर्ना हुनुहोस्",
+    "alreadyEnrolled": "कोर्समा जानुहोस्",
+    "lessons": "पाठहरू",
+    "preview": "पूर्वावलोकन",
+    "locked": "लक गरिएको",
+    "instructor": "प्रशिक्षक",
+    "about": "यस कोर्सको बारेमा"
+  },
+  "auth": {
+    "loginTitle": "लग इन गर्नुहोस्",
+    "registerTitle": "खाता खोल्नुहोस्",
+    "email": "इमेल",
+    "password": "पासवर्ड",
+    "name": "पूरा नाम",
+    "createAccount": "खाता खोल्नुहोस्",
+    "haveAccount": "पहिले नै खाता छ?",
+    "noAccount": "खाता छैन?",
+    "forgotPassword": "पासवर्ड बिर्सनुभयो?",
+    "verifyTitle": "इमेल प्रमाणित गर्नुहोस्",
+    "code": "६ अंकको कोड",
+    "verify": "प्रमाणित गर्नुहोस्"
+  },
+  "common": {
+    "back": "पछाडि",
+    "save": "सुरक्षित गर्नुहोस्",
+    "cancel": "रद्द गर्नुहोस्",
+    "loading": "लोड हुँदैछ…",
+    "language": "नेपाली / English"
+  }
+}

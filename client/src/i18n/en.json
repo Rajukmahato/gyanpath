@@ -1,0 +1,76 @@
+{
+  "brand": {
+    "name": "GyanPath",
+    "tagline": "Path of Knowledge"
+  },
+  "nav": {
+    "browse": "Browse",
+    "myLearning": "My learning",
+    "certificates": "My certificates",
+    "instructorDashboard": "Instructor dashboard",
+    "moderationQueue": "Moderation queue",
+    "payouts": "Payouts",
+    "profile": "Profile",
+    "login": "Log in",
+    "register": "Sign up",
+    "logout": "Log out"
+  },
+  "home": {
+    "heroEyebrow": "Loksewa · IELTS · Coding · Design",
+    "heroTitle": "Learn skills that get you hired, taught by verified Nepali instructors",
+    "heroSubtitle": "Structured, curated courses with progress tracking and signed certificates — priced in NPR, built for learners across Nepal.",
+    "heroCtaPrimary": "Browse courses",
+    "heroCtaSecondary": "Become an instructor",
+    "statCourses": "Courses",
+    "statInstructors": "Verified instructors",
+    "statLearners": "Learners",
+    "whyTitle": "Built for how Nepal actually learns online",
+    "whyVerified": "Verified instructors",
+    "whyVerifiedDesc": "Every instructor is reviewed before they can publish, so you're never guessing about quality.",
+    "whySecure": "Anti-piracy protection",
+    "whySecureDesc": "Lessons stream through short-lived signed links scoped to you — not static URLs anyone can reshare.",
+    "whyCertificates": "Verifiable certificates",
+    "whyCertificatesDesc": "Completion is tracked from real watch activity and signed digitally, so anyone can verify it's genuine.",
+    "whyBandwidth": "Low-bandwidth friendly",
+    "whyBandwidthDesc": "Audio-only mode and adaptive quality for learners outside Kathmandu Valley.",
+    "categoriesTitle": "Browse by category",
+    "featuredTitle": "Featured courses"
+  },
+  "browse": {
+    "title": "All courses",
+    "searchPlaceholder": "Search courses…",
+    "allCategories": "All categories",
+    "empty": "No courses match yet",
+    "emptyDesc": "Try a different search or check back soon — new courses are added regularly."
+  },
+  "course": {
+    "enroll": "Enroll for",
+    "alreadyEnrolled": "Go to course",
+    "lessons": "Lessons",
+    "preview": "Preview",
+    "locked": "Locked",
+    "instructor": "Instructor",
+    "about": "About this course"
+  },
+  "auth": {
+    "loginTitle": "Log in",
+    "registerTitle": "Create your account",
+    "email": "Email",
+    "password": "Password",
+    "name": "Full name",
+    "createAccount": "Create account",
+    "haveAccount": "Already have an account?",
+    "noAccount": "Don't have an account?",
+    "forgotPassword": "Forgot password?",
+    "verifyTitle": "Verify your email",
+    "code": "6-digit code",
+    "verify": "Verify"
+  },
+  "common": {
+    "back": "Back",
+    "save": "Save",
+    "cancel": "Cancel",
+    "loading": "Loading…",
+    "language": "नेपाली / English"
+  }
+}
