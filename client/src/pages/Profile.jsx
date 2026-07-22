@@ -1,18 +1,17 @@
 import { useEffect, useRef, useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { startRegistration } from '@simplewebauthn/browser'
-import { Camera, Download, Fingerprint, Plus, ShieldCheck, ShieldOff, Trash2 } from 'lucide-react'
+import { Camera, Download, FileDown, FileUp, Fingerprint, KeyRound, Plus, ShieldCheck, ShieldOff, Trash2 } from 'lucide-react'
 import { useAuth } from '../hooks/useAuth.js'
-import { api, setAccessToken, getAccessToken } from '../api/client.js'
-
-const API_URL = import.meta.env.VITE_API_URL
+import { api, setAccessToken, getAccessToken, API_URL } from '../api/client.js'
 import Layout from '../components/Layout.jsx'
 import Container from '../components/ui/Container.jsx'
 import Card from '../components/ui/Card.jsx'
 import Button from '../components/ui/Button.jsx'
 import Badge from '../components/ui/Badge.jsx'
-import Input, { Label, Textarea } from '../components/ui/Input.jsx'
+import Input, { Label, Textarea, PasswordInput } from '../components/ui/Input.jsx'
 import Alert from '../components/ui/Alert.jsx'
+import PasswordStrengthMeter from '../components/PasswordStrengthMeter.jsx'
 
 function ConfirmDialog({ title, message, danger, onConfirm, onCancel, children }) {
   return (
@@ -105,6 +104,74 @@ function PasskeysCard() {
   )
 }
 
+function ChangePasswordCard() {
+  const [current, setCurrent] = useState('')
+  const [next, setNext] = useState('')
+  const [confirm, setConfirm] = useState('')
+  const [msg, setMsg] = useState(null)
+  const [busy, setBusy] = useState(false)
+
+  const mismatch = confirm.length > 0 && next !== confirm
+
+  async function handleSubmit(e) {
+    e.preventDefault()
+    setMsg(null)
+    if (next !== confirm) {
+      setMsg({ tone: 'error', text: 'New passwords do not match.' })
+      return
+    }
+    setBusy(true)
+    try {
+      const res = await api.changePassword({ currentPassword: current, newPassword: next })
+      // the server rotates our session — keep the returned access token so we stay signed in
+      if (res.accessToken) setAccessToken(res.accessToken)
+      setCurrent(''); setNext(''); setConfirm('')
+      setMsg({ tone: 'success', text: 'Password changed. Your other devices have been signed out.' })
+    } catch (err) {
+      setMsg({ tone: 'error', text: err.body?.reasons?.join(', ') || err.body?.error || 'Could not change password.' })
+    } finally {
+      setBusy(false)
+    }
+  }
+
+  return (
+    <Card className="mt-6 p-6">
+      <p className="flex items-center gap-2 font-display font-semibold text-ink-900">
+        <KeyRound className="h-4 w-4 text-brand-600" /> Change password
+      </p>
+      <p className="mt-1 text-sm text-ink-500">
+        Update your password. For your security this signs out all your other devices.
+      </p>
+      <form onSubmit={handleSubmit} className="mt-4 space-y-4">
+        {msg && <Alert tone={msg.tone}>{msg.text}</Alert>}
+        <div>
+          <Label>Current password</Label>
+          <PasswordInput required value={current} onChange={(e) => setCurrent(e.target.value)} autoComplete="current-password" />
+        </div>
+        <div>
+          <Label>New password</Label>
+          <PasswordInput required value={next} onChange={(e) => setNext(e.target.value)} autoComplete="new-password" />
+          <PasswordStrengthMeter password={next} />
+        </div>
+        <div>
+          <Label>Confirm new password</Label>
+          <PasswordInput
+            required
+            value={confirm}
+            onChange={(e) => setConfirm(e.target.value)}
+            autoComplete="new-password"
+            className={mismatch ? 'border-red-400' : ''}
+          />
+          {mismatch && <p className="mt-1 text-xs text-red-600">Passwords don't match.</p>}
+        </div>
+        <Button type="submit" disabled={busy || mismatch || !current || !next}>
+          {busy ? 'Saving…' : 'Update password'}
+        </Button>
+      </form>
+    </Card>
+  )
+}
+
 export default function Profile() {
   const { user, logout, refreshUser } = useAuth()
   const navigate = useNavigate()
@@ -116,6 +183,7 @@ export default function Profile() {
   const [avatarUrl, setAvatarUrl] = useState(user.avatarUrl || null)
   const [avatarLoading, setAvatarLoading] = useState(false)
   const fileRef = useRef(null)
+  const importRef = useRef(null)
 
   const initials = (user.profile?.name || user.email).slice(0, 2).toUpperCase()
 
@@ -163,6 +231,44 @@ export default function Profile() {
     a.download = 'gyanpath-my-data.pdf'
     a.click()
     URL.revokeObjectURL(url)
+  }
+
+  async function handleExportJson() {
+    // machine-readable export that the import below can consume (data portability)
+    const res = await fetch(`${API_URL}/api/users/me/export.json`, {
+      headers: { Authorization: `Bearer ${getAccessToken()}` },
+    })
+    const blob = await res.blob()
+    const url = URL.createObjectURL(blob)
+    const a = document.createElement('a')
+    a.href = url
+    a.download = 'gyanpath-my-data.json'
+    a.click()
+    URL.revokeObjectURL(url)
+  }
+
+  async function handleImport(e) {
+    const file = e.target.files?.[0]
+    if (!file) return
+    try {
+      const parsed = JSON.parse(await file.text())
+      const result = await api.importMyData({ profile: parsed.profile })
+      // reflect the restored fields in the form immediately — older exports nested the
+      // editable fields under profile.profile, so unwrap that shape here too
+      const p = parsed.profile?.profile && typeof parsed.profile.profile === 'object'
+        ? parsed.profile.profile
+        : parsed.profile
+      if (p?.name != null) setName(p.name)
+      if (p?.bio != null) setBio(p.bio)
+      if (p?.interests) setInterests(p.interests.join(', '))
+      if (p?.language) setLanguage(p.language)
+      await refreshUser()
+      setMessage({ tone: 'success', text: `Imported: ${result.imported.join(', ')}.` })
+    } catch (err) {
+      setMessage({ tone: 'error', text: err.body?.error || 'Could not import this file — expected a GyanPath JSON export.' })
+    } finally {
+      if (importRef.current) importRef.current.value = ''
+    }
   }
 
   async function handleDeleteAccount() {
@@ -271,17 +377,29 @@ export default function Profile() {
           </div>
         </Card>
 
+        {/* Change password */}
+        <ChangePasswordCard />
+
         {/* Passkeys (WebAuthn) */}
         <PasskeysCard />
 
         {/* Your data */}
         <Card className="mt-6 p-6">
           <p className="font-display font-semibold text-ink-900">Your data</p>
-          <p className="mt-1 text-sm text-ink-500">Download a copy of your account data, or permanently delete your account.</p>
-          <div className="mt-4 flex gap-3">
+          <p className="mt-1 text-sm text-ink-500">
+            Download a copy of your account data (right to portability), re-import your saved preferences, or permanently delete your account.
+          </p>
+          <div className="mt-4 flex flex-wrap gap-3">
             <Button variant="outline" onClick={handleExport}>
               <Download className="h-4 w-4" /> Export as PDF
             </Button>
+            <Button variant="outline" onClick={handleExportJson}>
+              <FileDown className="h-4 w-4" /> Export as JSON
+            </Button>
+            <Button variant="outline" onClick={() => importRef.current?.click()}>
+              <FileUp className="h-4 w-4" /> Import data
+            </Button>
+            <input ref={importRef} type="file" accept="application/json,.json" className="sr-only" onChange={handleImport} />
             <Button variant="danger" onClick={() => setShowDeleteConfirm(true)}>
               <Trash2 className="h-4 w-4" /> Delete account
             </Button>
