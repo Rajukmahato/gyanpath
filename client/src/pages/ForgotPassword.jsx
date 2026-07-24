@@ -1,6 +1,10 @@
 import { useState } from 'react'
 import { useNavigate, Link } from 'react-router-dom'
+import { MailCheck } from 'lucide-react'
 import { api } from '../api/client.js'
+import AuthLayout from '../components/AuthLayout.jsx'
+import Input, { Label } from '../components/ui/Input.jsx'
+import Button from '../components/ui/Button.jsx'
 
 export default function ForgotPassword() {
   const [email, setEmail] = useState('')
@@ -15,36 +19,30 @@ export default function ForgotPassword() {
 
   if (sent) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-white">
-        <div className="text-center space-y-3">
-          <p>If that email is registered, a reset code has been sent.</p>
-          <button className="underline" onClick={() => navigate('/reset-password', { state: { email } })}>
+      <AuthLayout title="Check your email">
+        <div className="text-center">
+          <MailCheck className="mx-auto h-10 w-10 text-brand-500" />
+          <p className="mt-3 text-sm text-ink-600">If that email is registered, a reset code has been sent.</p>
+          <Button className="mt-5 w-full" onClick={() => navigate('/reset-password', { state: { email } })}>
             I have a code
-          </button>
+          </Button>
         </div>
-      </div>
+      </AuthLayout>
     )
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-white">
-      <form onSubmit={handleSubmit} className="w-full max-w-sm space-y-3">
-        <h1 className="text-xl font-semibold">Forgot password</h1>
-        <input
-          className="w-full border rounded px-3 py-2"
-          type="email"
-          placeholder="Email"
-          required
-          value={email}
-          onChange={(e) => setEmail(e.target.value)}
-        />
-        <button className="w-full bg-gray-900 text-white rounded px-3 py-2" type="submit">
-          Send reset code
-        </button>
-        <p className="text-sm text-gray-600">
-          <Link to="/login" className="underline">Back to login</Link>
+    <AuthLayout title="Forgot password" subtitle="We'll send a reset code to your email.">
+      <form onSubmit={handleSubmit} className="space-y-4">
+        <div>
+          <Label>Email</Label>
+          <Input type="email" required value={email} onChange={(e) => setEmail(e.target.value)} />
+        </div>
+        <Button className="w-full" size="lg" type="submit">Send reset code</Button>
+        <p className="text-center text-sm text-ink-500">
+          <Link to="/login" className="font-medium text-brand-600 hover:underline">Back to login</Link>
         </p>
       </form>
-    </div>
+    </AuthLayout>
   )
 }

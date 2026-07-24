@@ -1,6 +1,11 @@
 import { useState } from 'react'
 import { useNavigate, useLocation } from 'react-router-dom'
+import { ShieldCheck } from 'lucide-react'
 import { useAuth } from '../hooks/useAuth.js'
+import AuthLayout from '../components/AuthLayout.jsx'
+import Input, { Label } from '../components/ui/Input.jsx'
+import Button from '../components/ui/Button.jsx'
+import Alert from '../components/ui/Alert.jsx'
 
 export default function MfaChallenge() {
   const [token, setToken] = useState('')
@@ -13,31 +18,32 @@ export default function MfaChallenge() {
     e.preventDefault()
     setError(null)
     try {
-      await verifyMfaLogin(mfaToken, token)
-      navigate('/')
+      const data = await verifyMfaLogin(mfaToken, token)
+      if (data.passwordExpired) navigate('/change-expired-password', { state: { passwordChangeToken: data.passwordChangeToken } })
+      else navigate('/')
     } catch (err) {
-      setError(err.message)
+      setError(err.body?.error || err.message)
     }
   }
 
-  if (!mfaToken) return <p className="p-6">Start by logging in first.</p>
+  if (!mfaToken) {
+    return (
+      <AuthLayout title="Two-factor authentication">
+        <Alert tone="info">Start by logging in first.</Alert>
+      </AuthLayout>
+    )
+  }
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-white">
-      <form onSubmit={handleSubmit} className="w-full max-w-sm space-y-3">
-        <h1 className="text-xl font-semibold">Enter your authenticator code</h1>
-        {error && <p className="text-sm text-red-600">{error}</p>}
-        <input
-          className="w-full border rounded px-3 py-2"
-          placeholder="6-digit code"
-          required
-          value={token}
-          onChange={(e) => setToken(e.target.value)}
-        />
-        <button className="w-full bg-gray-900 text-white rounded px-3 py-2" type="submit">
-          Verify
-        </button>
+    <AuthLayout title="Enter your authenticator code" subtitle="Open your authenticator app for the current 6-digit code.">
+      <form onSubmit={handleSubmit} className="space-y-4">
+        {error && <Alert tone="error">{error}</Alert>}
+        <div>
+          <Label className="flex items-center gap-1.5"><ShieldCheck className="h-4 w-4 text-brand-600" /> Authentication code</Label>
+          <Input placeholder="123456" required value={token} onChange={(e) => setToken(e.target.value)} className="tracking-widest" />
+        </div>
+        <Button className="w-full" size="lg" type="submit">Verify</Button>
       </form>
-    </div>
+    </AuthLayout>
   )
 }

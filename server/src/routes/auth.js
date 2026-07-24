@@ -16,6 +16,10 @@ import {
   requestPasswordReset,
   confirmPasswordReset,
   changeExpiredPassword,
+  changePassword,
+  oauthProviders,
+  googleOAuthStart,
+  googleOAuthCallback,
 } from '../controllers/authController.js'
 import {
   registerOptions,
@@ -36,12 +40,18 @@ router.post('/mfa/login-verify', loginLimiter, verifyMfaLogin)
 router.post('/mfa/setup', requireAuth, setupMfa)
 router.post('/mfa/enable', requireAuth, enableMfa)
 router.post('/mfa/disable', requireAuth, disableMfa)
+// Google OAuth (hand-rolled authorization-code flow; browser-navigated, hence GET)
+router.get('/oauth/providers', oauthProviders)
+router.get('/oauth/google', googleOAuthStart)
+router.get('/oauth/google/callback', googleOAuthCallback)
+
 router.post('/refresh', refresh)
 router.get('/me', requireAuth, me)
 router.post('/logout', logout)
 router.post('/password-reset/request', passwordResetLimiter, requestPasswordReset)
 router.post('/password-reset/confirm', passwordResetLimiter, confirmPasswordReset)
 router.post('/password/change-expired', passwordResetLimiter, changeExpiredPassword)
+router.post('/password/change', requireAuth, passwordResetLimiter, changePassword)
 
 // WebAuthn / passkeys (advanced, passwordless authentication)
 router.post('/webauthn/register/options', requireAuth, registerOptions)

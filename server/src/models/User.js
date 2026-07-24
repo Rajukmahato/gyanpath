@@ -36,6 +36,8 @@ const userSchema = new mongoose.Schema(
     },
     mfaSecret: { type: String },
     mfaEnabled: { type: Boolean, default: false },
+    // set when the account was created or linked via a third-party OAuth provider (e.g. 'google')
+    oauthProvider: { type: String },
     passkeys: { type: [passkeySchema], default: [] },
     profile: { type: profileSchema, default: () => ({}) },
     avatarUrl: { type: String },

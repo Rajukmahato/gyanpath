@@ -1,11 +1,16 @@
 import { useState } from 'react'
-import { useNavigate, useLocation } from 'react-router-dom'
+import { useNavigate, useLocation, Link } from 'react-router-dom'
 import { api } from '../api/client.js'
+import AuthLayout from '../components/AuthLayout.jsx'
+import Input, { Label } from '../components/ui/Input.jsx'
+import Button from '../components/ui/Button.jsx'
+import Alert from '../components/ui/Alert.jsx'
 
 export default function VerifyOtp() {
   const [email, setEmail] = useState(useLocation().state?.email || '')
   const [code, setCode] = useState('')
   const [error, setError] = useState(null)
+  const [info, setInfo] = useState(null)
   const navigate = useNavigate()
 
   async function handleSubmit(e) {
@@ -19,30 +24,38 @@ export default function VerifyOtp() {
     }
   }
 
+  async function handleResend() {
+    setError(null)
+    setInfo(null)
+    try {
+      await api.resendOtp({ email })
+      setInfo('A new code has been sent. Check your email (or the server log in dev).')
+    } catch (err) {
+      setError(err.message)
+    }
+  }
+
   return (
-    <div className="min-h-screen flex items-center justify-center bg-white">
-      <form onSubmit={handleSubmit} className="w-full max-w-sm space-y-3">
-        <h1 className="text-xl font-semibold">Verify your email</h1>
-        {error && <p className="text-sm text-red-600">{error}</p>}
-        <input
-          className="w-full border rounded px-3 py-2"
-          type="email"
-          placeholder="Email"
-          required
-          value={email}
-          onChange={(e) => setEmail(e.target.value)}
-        />
-        <input
-          className="w-full border rounded px-3 py-2"
-          placeholder="6-digit code"
-          required
-          value={code}
-          onChange={(e) => setCode(e.target.value)}
-        />
-        <button className="w-full bg-gray-900 text-white rounded px-3 py-2" type="submit">
-          Verify
-        </button>
+    <AuthLayout title="Verify your email" subtitle="Enter the 6-digit code we sent to your email.">
+      <form onSubmit={handleSubmit} className="space-y-4">
+        {error && <Alert tone="error">{error}</Alert>}
+        {info && <Alert tone="success">{info}</Alert>}
+        <div>
+          <Label>Email</Label>
+          <Input type="email" required value={email} onChange={(e) => setEmail(e.target.value)} />
+        </div>
+        <div>
+          <Label>Verification code</Label>
+          <Input placeholder="123456" required value={code} onChange={(e) => setCode(e.target.value)} className="tracking-widest" />
+        </div>
+        <Button className="w-full" size="lg" type="submit">Verify</Button>
+        <div className="flex items-center justify-between text-sm">
+          <button type="button" onClick={handleResend} className="font-medium text-brand-600 hover:underline">
+            Resend code
+          </button>
+          <Link to="/login" className="text-ink-500 hover:underline">Back to login</Link>
+        </div>
       </form>
-    </div>
+    </AuthLayout>
   )
 }

@@ -20,3 +20,5 @@ export const loginLimiter = createRateLimiter({ windowMs: 15 * 60 * 1000, max: 2
 export const otpLimiter = createRateLimiter({ windowMs: 15 * 60 * 1000, max: 10, prefix: 'otp' })
 export const passwordResetLimiter = createRateLimiter({ windowMs: 15 * 60 * 1000, max: 5, prefix: 'pwreset' })
 export const signupLimiter = createRateLimiter({ windowMs: 60 * 60 * 1000, max: 10, prefix: 'signup' })
+// caps how fast one client can mint signed video URLs, slowing content-scraping
+export const contentLimiter = createRateLimiter({ windowMs: 5 * 60 * 1000, max: 60, prefix: 'content' })

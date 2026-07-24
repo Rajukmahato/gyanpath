@@ -8,7 +8,8 @@ import User from '../models/User.js'
 import {
   RP_NAME,
   RP_ID,
-  ORIGIN,
+  EXPECTED_ORIGINS,
+  EXPECTED_RP_IDS,
   storeRegChallenge,
   takeRegChallenge,
   storeAuthChallenge,
@@ -59,8 +60,8 @@ export async function registerVerify(req, res) {
     verification = await verifyRegistrationResponse({
       response: req.body.attestation,
       expectedChallenge,
-      expectedOrigin: ORIGIN,
-      expectedRPID: RP_ID,
+      expectedOrigin: EXPECTED_ORIGINS,
+      expectedRPID: EXPECTED_RP_IDS,
     })
   } catch (err) {
     return res.status(400).json({ error: err.message })
@@ -121,8 +122,8 @@ export async function loginVerify(req, res) {
     verification = await verifyAuthenticationResponse({
       response: assertion,
       expectedChallenge,
-      expectedOrigin: ORIGIN,
-      expectedRPID: RP_ID,
+      expectedOrigin: EXPECTED_ORIGINS,
+      expectedRPID: EXPECTED_RP_IDS,
       credential: {
         id: passkey.credentialId,
         publicKey: toBuffer(passkey.publicKey),
@@ -144,7 +145,7 @@ export async function loginVerify(req, res) {
   await user.save()
 
   const accessToken = signAccessToken(user)
-  const refreshToken = await createRefreshSession(String(user._id), req.ip)
+  const refreshToken = await createRefreshSession(String(user._id), req.ip, req.get('user-agent'))
   setRefreshCookie(res, refreshToken)
 
   await logAction({ actor: user._id, role: user.role, action: 'passkey_login', resourceType: 'User', resourceId: user._id, ip: req.ip, status: 'success' })

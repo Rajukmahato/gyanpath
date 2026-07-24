@@ -19,9 +19,12 @@ import {
 import { setRefreshCookie, clearRefreshCookie, REFRESH_COOKIE_NAME } from '../utils/cookies.js'
 import { logAction } from '../services/auditService.js'
 import { flagBurst } from '../services/alertService.js'
+import { isGoogleOAuthConfigured, buildGoogleAuthUrl, exchangeCodeForProfile } from '../services/oauthService.js'
+import { clientOrigin } from '../utils/clientOrigin.js'
+import { randomUUID } from 'node:crypto'
 
-const LOGIN_FAIL_LIMIT = 5
-const LOGIN_FAIL_CAPTCHA_THRESHOLD = 3  // show CAPTCHA after this many failures
+const LOGIN_FAIL_LIMIT = 12
+const LOGIN_FAIL_CAPTCHA_THRESHOLD = 6  // show CAPTCHA after this many failures
 const LOGIN_FAIL_WINDOW_SECONDS = 15 * 60
 const HCAPTCHA_SECRET = process.env.HCAPTCHA_SECRET_KEY || '0x0000000000000000000000000000000000000000' // test secret
 // NIST SP 800-63B argues against mandatory rotation; the brief still requires it, so we
@@ -46,9 +49,9 @@ async function recordLoginFailure(email) {
   })
 }
 
-async function issueSession(res, user, ip) {
+async function issueSession(res, user, ip, userAgent) {
   const accessToken = signAccessToken(user)
-  const refreshToken = await createRefreshSession(String(user._id), ip)
+  const refreshToken = await createRefreshSession(String(user._id), ip, userAgent)
   setRefreshCookie(res, refreshToken)
   return accessToken
 }
@@ -199,10 +202,100 @@ export async function login(req, res) {
     return res.json({ passwordExpired: true, passwordChangeToken })
   }
 
-  const accessToken = await issueSession(res, user, req.ip)
+  const accessToken = await issueSession(res, user, req.ip, req.get('user-agent'))
   await logAction({ actor: user._id, role: user.role, action: 'login', resourceType: 'User', resourceId: user._id, ip: req.ip, status: 'success' })
 
   res.json({ accessToken, user: { id: user._id, email: user.email, role: user.role } })
+}
+
+const OAUTH_STATE_COOKIE = 'oauth_state'
+
+// Lets the SPA know which social providers are actually wired up, so it can hide the
+// "Continue with Google" button instead of sending the user into a 503.
+export function oauthProviders(req, res) {
+  res.json({ google: isGoogleOAuthConfigured() })
+}
+
+// Step 1 of Google login: mint an anti-CSRF `state`, remember it in a short-lived cookie,
+// and bounce the browser to Google's consent screen.
+export function googleOAuthStart(req, res) {
+  if (!isGoogleOAuthConfigured()) {
+    return res.status(503).json({ error: 'Google login is not configured' })
+  }
+  const state = randomUUID()
+  // SameSite=Lax (not Strict): the cookie must survive the top-level redirect *back*
+  // from accounts.google.com, which Strict would drop.
+  res.cookie(OAUTH_STATE_COOKIE, state, {
+    httpOnly: true,
+    secure: process.env.NODE_ENV === 'production',
+    sameSite: 'lax',
+    maxAge: 10 * 60 * 1000,
+    path: '/api/auth',
+  })
+  res.redirect(buildGoogleAuthUrl(state))
+}
+
+// Step 2: Google redirects back here with a code. Verify state, exchange the code for the
+// user's verified email, find-or-create the account, issue a session, and hand the browser
+// back to the SPA. Errors redirect to /login with an oauth_error the page can surface.
+export async function googleOAuthCallback(req, res) {
+  const origin = clientOrigin()
+  const fail = (reason) => res.redirect(`${origin}/login?oauth_error=${encodeURIComponent(reason)}`)
+
+  try {
+    if (!isGoogleOAuthConfigured()) return fail('not_configured')
+
+    const { code, state } = req.query
+    const cookieState = req.cookies?.[OAUTH_STATE_COOKIE]
+    res.clearCookie(OAUTH_STATE_COOKIE, { path: '/api/auth' })
+
+    if (!code || !state || !cookieState || state !== cookieState) {
+      return fail('invalid_state')
+    }
+
+    const profile = await exchangeCodeForProfile(code)
+    if (!profile.email || !profile.emailVerified) return fail('email_unverified')
+
+    const email = profile.email.toLowerCase()
+    let user = await User.findOne({ email })
+
+    if (!user) {
+      // OAuth accounts still need a passwordHash (schema-required); use an unguessable
+      // random one they'll never use — they authenticate through Google.
+      const randomPasswordHash = await hashPassword(`${randomUUID()}${randomUUID()}`)
+      user = await User.create({
+        email,
+        passwordHash: randomPasswordHash,
+        emailVerified: true,
+        oauthProvider: 'google',
+        profile: { name: profile.name },
+      })
+    } else {
+      // Google has verified this address, so an existing unverified local account is now trusted.
+      if (!user.emailVerified) user.emailVerified = true
+      // record that this account is now reachable through Google as well
+      if (!user.oauthProvider) user.oauthProvider = 'google'
+      if (user.isModified()) await user.save()
+    }
+
+    // A verified Google identity is still only one factor. If the account has MFA on, it
+    // must clear the second factor here exactly as a password login would — otherwise
+    // "Continue with Google" would be a way around the user's own 2FA.
+    if (user.mfaEnabled) {
+      const mfaToken = signMfaChallenge(String(user._id))
+      return res.redirect(`${origin}/oauth/callback#mfa_token=${encodeURIComponent(mfaToken)}`)
+    }
+
+    const accessToken = await issueSession(res, user, req.ip, req.get('user-agent'))
+    await logAction({ actor: user._id, role: user.role, action: 'login', resourceType: 'User', resourceId: user._id, ip: req.ip, status: 'success' })
+
+    // Pass the access token to the SPA via the URL fragment (#): fragments are never sent to
+    // the server or logged, and the callback page reads it, then wipes it from history.
+    return res.redirect(`${origin}/oauth/callback#access_token=${accessToken}`)
+  } catch (err) {
+    console.error('google oauth callback failed', err)
+    return fail('oauth_failed')
+  }
 }
 
 export async function verifyMfaLogin(req, res) {
@@ -231,7 +324,7 @@ export async function verifyMfaLogin(req, res) {
     return res.json({ passwordExpired: true, passwordChangeToken })
   }
 
-  const accessToken = await issueSession(res, user, req.ip)
+  const accessToken = await issueSession(res, user, req.ip, req.get('user-agent'))
   await logAction({ actor: user._id, role: user.role, action: 'mfa_verify', resourceType: 'User', resourceId: user._id, ip: req.ip, status: 'success' })
 
   res.json({ accessToken, user: { id: user._id, email: user.email, role: user.role } })
@@ -282,7 +375,7 @@ export async function refresh(req, res) {
   if (!token) return res.status(401).json({ error: 'no refresh token' })
 
   try {
-    const { userId, refreshToken } = await rotateRefreshToken(token, req.ip)
+    const { userId, refreshToken } = await rotateRefreshToken(token, req.ip, req.get('user-agent'))
     const user = await User.findById(userId)
     if (!user) return res.status(401).json({ error: 'user not found' })
 
@@ -295,6 +388,9 @@ export async function refresh(req, res) {
     }
     if (err.code === 'IP_MISMATCH') {
       return res.status(401).json({ error: 'session expired due to network change, please log in again' })
+    }
+    if (err.code === 'DEVICE_MISMATCH') {
+      return res.status(401).json({ error: 'session expired due to a new device/browser, please log in again' })
     }
     return res.status(401).json({ error: 'invalid refresh token' })
   }
@@ -391,4 +487,44 @@ export async function changeExpiredPassword(req, res) {
   await logAction({ actor: user._id, role: user.role, action: 'password_change_forced', resourceType: 'User', resourceId: user._id, ip: req.ip, status: 'success' })
 
   res.json({ message: 'password updated, please log in again' })
+}
+
+// Authenticated in-app password change from the Profile page. The user re-authenticates by
+// supplying their current password, then a new one (subject to the same strength/reuse rules
+// as reset). We revoke every session — logging out other devices as a precaution — then mint a
+// fresh session for the current device so the user stays signed in without a full re-login.
+export async function changePassword(req, res) {
+  const { currentPassword, newPassword } = req.body
+  if (!currentPassword || !newPassword) {
+    return res.status(400).json({ error: 'currentPassword and newPassword are required' })
+  }
+
+  const user = req.user
+
+  if (!(await verifyPassword(user.passwordHash, currentPassword))) {
+    await logAction({ actor: user._id, role: user.role, action: 'password_change', resourceType: 'User', resourceId: user._id, ip: req.ip, status: 'failure' })
+    return res.status(400).json({ error: 'current password is incorrect' })
+  }
+
+  const strength = checkPasswordStrength(newPassword)
+  if (!strength.ok) {
+    return res.status(400).json({ error: 'weak password', reasons: strength.reasons })
+  }
+
+  const allRecentHashes = [user.passwordHash, ...user.recentPasswordHashes]
+  if (await wasRecentlyUsed(allRecentHashes, newPassword)) {
+    return res.status(400).json({ error: 'password was used recently, choose a different one' })
+  }
+
+  user.recentPasswordHashes = pushRecentPasswordHash(user.recentPasswordHashes, user.passwordHash)
+  user.passwordHash = await hashPassword(newPassword)
+  user.passwordChangedAt = new Date()
+  await user.save()
+
+  await revokeAllUserSessions(String(user._id))
+  const accessToken = await issueSession(res, user, req.ip, req.get('user-agent'))
+
+  await logAction({ actor: user._id, role: user.role, action: 'password_change', resourceType: 'User', resourceId: user._id, ip: req.ip, status: 'success' })
+
+  res.json({ message: 'password changed', accessToken })
 }
