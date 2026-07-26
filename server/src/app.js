@@ -18,7 +18,28 @@ import { sanitizeInput } from './middleware/sanitize.js'
 const app = express()
 
 app.use(helmet())
-app.use(cors({ origin: process.env.CLIENT_ORIGIN, credentials: true }))
+
+// CLIENT_ORIGIN may be a comma-separated list so the same server can be reached both via
+// localhost and a LAN IP (e.g. testing from a phone) without a CORS rejection. Requests with
+// no Origin header (same-origin, curl, server-to-server) are allowed through.
+const allowedOrigins = (process.env.CLIENT_ORIGIN || 'http://localhost:5173')
+  .split(',')
+  .map((o) => o.trim())
+  .filter(Boolean)
+
+const isDev = process.env.NODE_ENV !== 'production'
+// Vite bumps to 5174, 5175… when the default port is taken, so in dev accept any localhost
+// port instead of chasing them one by one. Production stays restricted to the allowlist.
+const devLocalhost = /^https?:\/\/(localhost|127\.0\.0\.1):\d+$/
+
+app.use(cors({
+  origin(origin, cb) {
+    if (!origin || allowedOrigins.includes(origin)) return cb(null, true)
+    if (isDev && devLocalhost.test(origin)) return cb(null, true)
+    cb(new Error(`Origin ${origin} not allowed by CORS`))
+  },
+  credentials: true,
+}))
 
 app.use(express.json())
 app.use(cookieParser())
