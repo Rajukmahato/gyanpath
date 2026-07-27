@@ -24,6 +24,9 @@ coverage/
 # local object storage (videos, generated certificate PDFs, uploads)
 uploads/
 storage/
+# sample/lesson video files — fetched via `npm run fetch:media`, not committed
+media/
+*.mp4
 
 # keys / secrets that should never be hand-placed in the repo
 *.pem
