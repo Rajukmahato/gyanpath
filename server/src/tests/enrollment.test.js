@@ -9,6 +9,9 @@ let mongod
 before(async () => {
   mongod = await MongoMemoryServer.create()
   await mongoose.connect(mongod.getUri())
+  // Mongoose builds indexes in the background; wait for the unique compound index
+  // to exist before asserting it rejects duplicates, otherwise the test is timing-dependent.
+  await Enrollment.init()
 })
 
 after(async () => {
