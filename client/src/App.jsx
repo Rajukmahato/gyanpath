@@ -20,6 +20,7 @@ import Register from './pages/Register.jsx'
 import VerifyOtp from './pages/VerifyOtp.jsx'
 import Login from './pages/Login.jsx'
 import MfaChallenge from './pages/MfaChallenge.jsx'
+import OAuthCallback from './pages/OAuthCallback.jsx'
 import MfaSetup from './pages/MfaSetup.jsx'
 import ForgotPassword from './pages/ForgotPassword.jsx'
 import ResetPassword from './pages/ResetPassword.jsx'
@@ -38,6 +39,7 @@ function App() {
           <Route path="/verify-otp" element={<VerifyOtp />} />
           <Route path="/login" element={<Login />} />
           <Route path="/mfa-challenge" element={<MfaChallenge />} />
+          <Route path="/oauth/callback" element={<OAuthCallback />} />
           <Route path="/forgot-password" element={<ForgotPassword />} />
           <Route path="/reset-password" element={<ResetPassword />} />
           <Route path="/change-expired-password" element={<ChangeExpiredPassword />} />
