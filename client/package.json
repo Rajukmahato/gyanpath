@@ -10,7 +10,7 @@
     "preview": "vite preview"
   },
   "dependencies": {
-    "@fontsource/inter": "^5.2.8",
+    "@fontsource/inter": "^5.3.0",
     "@fontsource/manrope": "^5.2.8",
     "@hcaptcha/react-hcaptcha": "^2.0.2",
     "@simplewebauthn/browser": "^13.3.0",
