@@ -63,6 +63,13 @@ export function AuthProvider({ children }) {
     return data
   }, [])
 
+  // finishes a Google OAuth redirect: the server handed back an access token in the URL
+  // fragment and set the refresh cookie; adopt the token and load the full user
+  const completeOAuthLogin = useCallback(async (accessToken) => {
+    setAccessToken(accessToken)
+    applyUser(setUser, await api.me())
+  }, [])
+
   const logout = useCallback(async () => {
     await api.logout()
     setAccessToken(null)
@@ -76,7 +83,7 @@ export function AuthProvider({ children }) {
   }, [])
 
   return (
-    <AuthContext.Provider value={{ user, loading, login, loginWithPasskey, verifyMfaLogin, logout, refreshUser }}>
+    <AuthContext.Provider value={{ user, loading, login, loginWithPasskey, completeOAuthLogin, verifyMfaLogin, logout, refreshUser }}>
       {children}
     </AuthContext.Provider>
   )

@@ -1,4 +1,8 @@
-const API_URL = import.meta.env.VITE_API_URL
+// Default the API origin to the same host the app was loaded from (port 4000) so the app works
+// unchanged over localhost on the dev box AND over a LAN/VM IP (e.g. pentesting from a Kali VM
+// through Burp) without rebuilding. An explicit VITE_API_URL still overrides when needed.
+export const API_URL =
+  import.meta.env.VITE_API_URL || `${window.location.protocol}//${window.location.hostname}:4000`
 
 let accessToken = null
 
@@ -92,11 +96,13 @@ export const api = {
   enableMfa: (body) => request('/api/auth/mfa/enable', { method: 'POST', body }),
   disableMfa: (body) => request('/api/auth/mfa/disable', { method: 'POST', body }),
   deleteAccount: () => request('/api/users/me', { method: 'DELETE' }),
+  oauthProviders: () => request('/api/auth/oauth/providers', { auth: false }),
   me: () => request('/api/auth/me'),
   logout: () => request('/api/auth/logout', { method: 'POST' }),
   requestPasswordReset: (body) => request('/api/auth/password-reset/request', { method: 'POST', body, auth: false }),
   confirmPasswordReset: (body) => request('/api/auth/password-reset/confirm', { method: 'POST', body, auth: false }),
   changeExpiredPassword: (body) => request('/api/auth/password/change-expired', { method: 'POST', body, auth: false }),
+  changePassword: (body) => request('/api/auth/password/change', { method: 'POST', body }),
 
   // WebAuthn / passkeys
   passkeyRegisterOptions: () => request('/api/auth/webauthn/register/options', { method: 'POST' }),
@@ -136,6 +142,7 @@ export const api = {
 
   updateProfile: (body) => request('/api/users/me', { method: 'PATCH', body }),
   exportMyData: () => request('/api/users/me/export'),
+  importMyData: (body) => request('/api/users/me/import', { method: 'POST', body }),
   requestAccountDeletion: () => request('/api/users/me/delete-request', { method: 'POST' }),
 
   pingProgress: (lessonId, watchedSecondsDelta) =>
