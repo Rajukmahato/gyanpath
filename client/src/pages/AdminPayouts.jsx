@@ -1,9 +1,14 @@
 import { useEffect, useState } from 'react'
+import { Check, Wallet, X } from 'lucide-react'
 import { api } from '../api/client.js'
-import Nav from '../components/Nav.jsx'
+import Layout from '../components/Layout.jsx'
+import Container from '../components/ui/Container.jsx'
+import Card from '../components/ui/Card.jsx'
+import Button from '../components/ui/Button.jsx'
+import EmptyState from '../components/ui/EmptyState.jsx'
 
 export default function AdminPayouts() {
-  const [payouts, setPayouts] = useState([])
+  const [payouts, setPayouts] = useState(null)
 
   function refresh() {
     api.pendingPayouts().then(setPayouts)
@@ -17,24 +22,28 @@ export default function AdminPayouts() {
   }
 
   return (
-    <div className="min-h-screen bg-white">
-      <Nav />
-      <div className="max-w-2xl mx-auto p-6">
-        <h1 className="text-xl font-semibold mb-4">Pending payouts</h1>
-        {payouts.length === 0 && <p className="text-gray-500">Nothing pending.</p>}
-        {payouts.map((p) => (
-          <div key={p._id} className="border rounded p-3 mb-2 flex justify-between items-center">
-            <div>
-              <p className="font-medium">NPR {p.amountNPR.toLocaleString()}</p>
-              <p className="text-sm text-gray-500">{p.instructorId?.email}</p>
-            </div>
-            <div className="flex gap-2">
-              <button onClick={() => review(p._id, 'approved')} className="text-sm underline">Approve</button>
-              <button onClick={() => review(p._id, 'rejected')} className="text-sm underline">Reject</button>
-            </div>
-          </div>
-        ))}
-      </div>
-    </div>
+    <Layout>
+      <Container className="max-w-3xl py-10">
+        <h1 className="font-display text-2xl font-bold text-ink-900">Pending payouts</h1>
+
+        <div className="mt-6 space-y-3">
+          {payouts?.length === 0 && (
+            <EmptyState icon={Wallet} title="Nothing pending" description="Instructor payout requests will show up here." />
+          )}
+          {payouts?.map((p) => (
+            <Card key={p._id} className="flex items-center justify-between gap-4 p-5">
+              <div>
+                <p className="font-display font-semibold text-ink-900">NPR {p.amountNPR.toLocaleString()}</p>
+                <p className="text-sm text-ink-400">{p.instructorId?.email}</p>
+              </div>
+              <div className="flex gap-2">
+                <Button size="sm" onClick={() => review(p._id, 'approved')}><Check className="h-4 w-4" /> Approve</Button>
+                <Button size="sm" variant="outline" onClick={() => review(p._id, 'rejected')}><X className="h-4 w-4" /> Reject</Button>
+              </div>
+            </Card>
+          ))}
+        </div>
+      </Container>
+    </Layout>
   )
 }

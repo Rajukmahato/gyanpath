@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
 import { AlertTriangle, Image, MonitorPlay, Pencil, Play, Plus, Send, Upload, Wallet } from 'lucide-react'
-import { api } from '../api/client.js'
+import { api, API_URL } from '../api/client.js'
 import Layout from '../components/Layout.jsx'
 import Container from '../components/ui/Container.jsx'
 import Card from '../components/ui/Card.jsx'
@@ -193,7 +193,7 @@ function ThumbnailUpload({ course, onChanged }) {
     <div className="mt-2 flex items-center gap-3">
       {course.thumbnailUrl && (
         <img
-          src={course.thumbnailUrl.startsWith('/api') ? `${import.meta.env.VITE_API_URL}${course.thumbnailUrl}` : course.thumbnailUrl}
+          src={course.thumbnailUrl.startsWith('/api') ? `${API_URL}${course.thumbnailUrl}` : course.thumbnailUrl}
           alt="thumbnail"
           className="h-12 w-20 rounded object-cover border border-ink-200"
         />
