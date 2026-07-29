@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { useNavigate, useLocation } from 'react-router-dom'
+import { useNavigate, useLocation } from 'react-router'
 import { api } from '../api/client.js'
 import AuthLayout from '../components/AuthLayout.jsx'
 import Input, { Label, PasswordInput } from '../components/ui/Input.jsx'

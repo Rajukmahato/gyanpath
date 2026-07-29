@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react'
-import { useParams } from 'react-router-dom'
+import { useParams } from 'react-router'
 import { ShieldCheck } from 'lucide-react'
 import { api } from '../api/client.js'
 import Layout from '../components/Layout.jsx'

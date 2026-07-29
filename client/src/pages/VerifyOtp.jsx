@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { useNavigate, useLocation, Link } from 'react-router-dom'
+import { useNavigate, useLocation, Link } from 'react-router'
 import { api } from '../api/client.js'
 import AuthLayout from '../components/AuthLayout.jsx'
 import Input, { Label } from '../components/ui/Input.jsx'

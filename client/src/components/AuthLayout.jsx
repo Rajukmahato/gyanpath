@@ -1,4 +1,4 @@
-import { Link } from 'react-router-dom'
+import { Link } from 'react-router'
 import { useTranslation } from 'react-i18next'
 import { ArrowLeft, BadgeCheck, GraduationCap, Languages, Lock, Star } from 'lucide-react'
 import { setLanguage } from '../i18n/index.js'

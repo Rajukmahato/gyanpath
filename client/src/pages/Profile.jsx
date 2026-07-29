@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react'
-import { Link, useNavigate } from 'react-router-dom'
+import { Link, useNavigate } from 'react-router'
 import { startRegistration } from '@simplewebauthn/browser'
 import { Camera, Download, FileDown, FileUp, Fingerprint, KeyRound, Plus, ShieldCheck, ShieldOff, Trash2 } from 'lucide-react'
 import { useAuth } from '../hooks/useAuth.js'

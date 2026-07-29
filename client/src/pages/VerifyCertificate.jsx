@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useState } from 'react'
-import { useSearchParams } from 'react-router-dom'
+import { useSearchParams } from 'react-router'
 import { BadgeCheck, ShieldAlert } from 'lucide-react'
 import { api } from '../api/client.js'
 import Layout from '../components/Layout.jsx'

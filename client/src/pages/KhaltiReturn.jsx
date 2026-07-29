@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { Link, useNavigate, useSearchParams } from 'react-router-dom'
+import { Link, useNavigate, useSearchParams } from 'react-router'
 import { CheckCircle2, XCircle } from 'lucide-react'
 import { api } from '../api/client.js'
 import Layout from '../components/Layout.jsx'

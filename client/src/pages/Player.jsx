@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
-import { useParams, useNavigate, Link } from 'react-router-dom'
+import { useParams, useNavigate, Link } from 'react-router'
 import { AlertCircle, ArrowLeft, ArrowRight, Award, Captions, FileText, Headphones } from 'lucide-react'
 import { api, API_URL } from '../api/client.js'
 import Layout from '../components/Layout.jsx'

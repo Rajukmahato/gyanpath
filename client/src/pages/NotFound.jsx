@@ -1,4 +1,4 @@
-import { Link } from 'react-router-dom'
+import { Link } from 'react-router'
 import { Compass } from 'lucide-react'
 import Layout from '../components/Layout.jsx'
 import Container from '../components/ui/Container.jsx'

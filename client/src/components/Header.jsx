@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { createPortal } from 'react-dom'
-import { Link, NavLink, useNavigate } from 'react-router-dom'
+import { Link, NavLink, useNavigate } from 'react-router'
 import { useTranslation } from 'react-i18next'
 import { Languages, LogOut, Menu, X } from 'lucide-react'
 import { useAuth } from '../hooks/useAuth.js'

@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { useNavigate, Link } from 'react-router-dom'
+import { useNavigate, Link } from 'react-router'
 import { MailCheck } from 'lucide-react'
 import { api } from '../api/client.js'
 import AuthLayout from '../components/AuthLayout.jsx'

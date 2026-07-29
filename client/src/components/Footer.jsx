@@ -1,4 +1,4 @@
-import { Link } from 'react-router-dom'
+import { Link } from 'react-router'
 import Logo from './Logo.jsx'
 
 export default function Footer() {

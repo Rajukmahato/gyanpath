@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react'
-import { useNavigate, Link, useSearchParams } from 'react-router-dom'
+import { useNavigate, Link, useSearchParams } from 'react-router'
 import HCaptcha from '@hcaptcha/react-hcaptcha'
 import { Fingerprint } from 'lucide-react'
 import { useAuth } from '../hooks/useAuth.js'
