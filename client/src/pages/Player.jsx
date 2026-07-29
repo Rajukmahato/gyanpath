@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { useParams, useNavigate, Link } from 'react-router-dom'
 import { AlertCircle, ArrowLeft, ArrowRight, Award, Captions, FileText, Headphones } from 'lucide-react'
-import { api } from '../api/client.js'
+import { api, API_URL } from '../api/client.js'
 import Layout from '../components/Layout.jsx'
 import Container from '../components/ui/Container.jsx'
 import Card from '../components/ui/Card.jsx'
@@ -9,7 +9,6 @@ import Button from '../components/ui/Button.jsx'
 import Alert from '../components/ui/Alert.jsx'
 import { PageSpinner } from '../components/ui/Spinner.jsx'
 
-const API_URL = import.meta.env.VITE_API_URL
 const PING_EVERY_SECONDS = 5
 
 // load the YouTube IFrame API once, resolving when it's ready
