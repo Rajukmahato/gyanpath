@@ -1,0 +1,47 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1280 720" width="1280" height="720" role="img" aria-label="Coding course cover">
+  <defs>
+    <filter id="soft" x="-30%" y="-30%" width="160%" height="160%">
+      <feGaussianBlur stdDeviation="88"/>
+    </filter>
+    <pattern id="grid" width="40" height="40" patternUnits="userSpaceOnUse">
+      <path d="M40 0 H0 V40" fill="none" stroke="#ffffff" stroke-width="1" opacity="0.05"/>
+    </pattern>
+    <radialGradient id="vig" cx="50%" cy="42%" r="78%">
+      <stop offset="55%" stop-color="#000000" stop-opacity="0"/>
+      <stop offset="100%" stop-color="#000000" stop-opacity="0.62"/>
+    </radialGradient>
+    <linearGradient id="floor" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#000000" stop-opacity="0"/>
+      <stop offset="100%" stop-color="#000000" stop-opacity="0.55"/>
+    </linearGradient>
+  </defs>
+
+  <rect width="1280" height="720" fill="#0b1020"/>
+  <ellipse cx="870" cy="498" rx="396" ry="256" fill="#1e3a8a" opacity="0.50" filter="url(#soft)"/><ellipse cx="492" cy="198" rx="473" ry="422" fill="#0891b2" opacity="0.42" filter="url(#soft)"/><ellipse cx="722" cy="159" rx="542" ry="288" fill="#4f46e5" opacity="0.34" filter="url(#soft)"/>
+  <rect width="1280" height="720" fill="url(#grid)"/>
+  <circle cx="320" cy="444" r="2.6" fill="#22d3ee" opacity="0.22"/><circle cx="714" cy="171" r="1.5" fill="#22d3ee" opacity="0.25"/><circle cx="6" cy="43" r="1.5" fill="#22d3ee" opacity="0.11"/><circle cx="964" cy="694" r="2.9" fill="#22d3ee" opacity="0.25"/><circle cx="106" cy="719" r="2.7" fill="#22d3ee" opacity="0.21"/><circle cx="429" cy="475" r="2.1" fill="#22d3ee" opacity="0.20"/><circle cx="1145" cy="216" r="1.1" fill="#22d3ee" opacity="0.35"/><circle cx="901" cy="332" r="3.0" fill="#22d3ee" opacity="0.17"/><circle cx="760" cy="580" r="2.3" fill="#22d3ee" opacity="0.15"/><circle cx="1212" cy="483" r="1.4" fill="#22d3ee" opacity="0.33"/><circle cx="1264" cy="421" r="2.2" fill="#22d3ee" opacity="0.16"/><circle cx="27" cy="24" r="3.0" fill="#22d3ee" opacity="0.34"/><circle cx="1097" cy="403" r="1.6" fill="#22d3ee" opacity="0.29"/><circle cx="1210" cy="334" r="1.8" fill="#22d3ee" opacity="0.15"/><circle cx="40" cy="454" r="2.8" fill="#22d3ee" opacity="0.27"/><circle cx="1216" cy="466" r="1.6" fill="#22d3ee" opacity="0.12"/><circle cx="711" cy="660" r="1.1" fill="#22d3ee" opacity="0.20"/><circle cx="462" cy="10" r="1.2" fill="#22d3ee" opacity="0.17"/><circle cx="1051" cy="636" r="1.3" fill="#22d3ee" opacity="0.10"/><circle cx="750" cy="508" r="2.4" fill="#22d3ee" opacity="0.25"/><circle cx="600" cy="149" r="2.3" fill="#22d3ee" opacity="0.23"/><circle cx="655" cy="200" r="0.8" fill="#22d3ee" opacity="0.12"/><circle cx="536" cy="216" r="2.8" fill="#22d3ee" opacity="0.20"/><circle cx="628" cy="256" r="1.6" fill="#22d3ee" opacity="0.12"/><circle cx="356" cy="137" r="2.2" fill="#22d3ee" opacity="0.33"/><circle cx="671" cy="443" r="0.9" fill="#22d3ee" opacity="0.29"/><circle cx="1105" cy="711" r="2.9" fill="#22d3ee" opacity="0.11"/><circle cx="1128" cy="260" r="1.4" fill="#22d3ee" opacity="0.09"/><circle cx="1213" cy="90" r="2.5" fill="#22d3ee" opacity="0.24"/><circle cx="924" cy="130" r="1.8" fill="#22d3ee" opacity="0.11"/><circle cx="774" cy="587" r="2.2" fill="#22d3ee" opacity="0.09"/><circle cx="540" cy="208" r="1.3" fill="#22d3ee" opacity="0.23"/><circle cx="1159" cy="651" r="0.8" fill="#22d3ee" opacity="0.20"/><circle cx="266" cy="467" r="0.8" fill="#22d3ee" opacity="0.17"/><circle cx="1207" cy="315" r="1.5" fill="#22d3ee" opacity="0.13"/><circle cx="523" cy="618" r="1.6" fill="#22d3ee" opacity="0.31"/><circle cx="753" cy="560" r="2.1" fill="#22d3ee" opacity="0.09"/><circle cx="713" cy="435" r="1.8" fill="#22d3ee" opacity="0.36"/><circle cx="1233" cy="632" r="1.0" fill="#22d3ee" opacity="0.15"/><circle cx="933" cy="213" r="2.2" fill="#22d3ee" opacity="0.30"/><circle cx="95" cy="71" r="1.1" fill="#22d3ee" opacity="0.13"/><circle cx="425" cy="157" r="2.7" fill="#22d3ee" opacity="0.22"/><circle cx="789" cy="224" r="2.5" fill="#22d3ee" opacity="0.21"/><circle cx="1063" cy="280" r="2.5" fill="#22d3ee" opacity="0.17"/><circle cx="629" cy="624" r="2.0" fill="#22d3ee" opacity="0.30"/><circle cx="1204" cy="301" r="2.5" fill="#22d3ee" opacity="0.31"/>
+  <g opacity="0.96"><rect x="460" y="214" width="420" height="78" rx="14" fill="#38bdf8" opacity="0.08"/>
+      <rect x="460" y="214" width="420" height="78" rx="14" fill="none" stroke="#38bdf8" stroke-width="2.5" opacity="0.92"/>
+      <circle cx="670" cy="253" r="6" fill="#22d3ee" opacity="0.9"/>
+      <path d="M494 253 H644 M696 253 H846" stroke="#38bdf8" stroke-width="2" opacity="0.35"/><rect x="460" y="322" width="420" height="78" rx="14" fill="#38bdf8" opacity="0.08"/>
+      <rect x="460" y="322" width="420" height="78" rx="14" fill="none" stroke="#38bdf8" stroke-width="2.5" opacity="0.76"/>
+      <circle cx="670" cy="361" r="6" fill="#22d3ee" opacity="0.9"/>
+      <path d="M494 361 H644 M696 361 H846" stroke="#38bdf8" stroke-width="2" opacity="0.35"/><rect x="460" y="430" width="420" height="78" rx="14" fill="#38bdf8" opacity="0.08"/>
+      <rect x="460" y="430" width="420" height="78" rx="14" fill="none" stroke="#38bdf8" stroke-width="2.5" opacity="0.60"/>
+      <circle cx="670" cy="469" r="6" fill="#22d3ee" opacity="0.9"/>
+      <path d="M494 469 H644 M696 469 H846" stroke="#38bdf8" stroke-width="2" opacity="0.35"/><path d="M670 292 V322" stroke="#22d3ee" stroke-width="2.5" opacity="0.6"/><path d="M670 400 V430" stroke="#22d3ee" stroke-width="2.5" opacity="0.6"/><path d="M574 128 l-30 26 30 26" fill="none" stroke="#22d3ee" stroke-width="4" stroke-linecap="round" stroke-linejoin="round" opacity="0.85"/>
+    <path d="M654 178 l32 -74" stroke="#22d3ee" stroke-width="4" stroke-linecap="round" opacity="0.6"/>
+    <path d="M766 128 l30 26 -30 26" fill="none" stroke="#22d3ee" stroke-width="4" stroke-linecap="round" stroke-linejoin="round" opacity="0.85"/></g>
+  <rect width="1280" height="720" fill="url(#vig)"/>
+  <rect y="460" width="1280" height="260" fill="url(#floor)"/>
+  <g transform="translate(72 502)">
+    <rect x="0" y="0" width="52" height="52" rx="14" fill="#9f1d35"/>
+    <path d="M13 17 h11 a4 4 0 0 1 4 4 v16 a3 3 0 0 0 -3 -3 h-12 Z" fill="#ffffff" opacity="0.95"/>
+    <path d="M39 17 h-11 a4 4 0 0 0 -4 4 v16 a3 3 0 0 1 3 -3 h12 Z" fill="#ffffff" opacity="0.72"/>
+    <text x="70" y="24" font-family="ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif"
+          font-size="21" font-weight="700" fill="#ffffff" letter-spacing="0.4">GyanPath</text>
+    <text x="70" y="46" font-family="ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif"
+          font-size="14" font-weight="600" fill="#ffffff" opacity="0.62" letter-spacing="2.2">CODING</text>
+  </g>
+  <rect x="0" y="714" width="1280" height="6" fill="#9f1d35"/>
+</svg>

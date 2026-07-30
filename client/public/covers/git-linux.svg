@@ -1,0 +1,43 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1280 720" width="1280" height="720" role="img" aria-label="Coding course cover">
+  <defs>
+    <filter id="soft" x="-30%" y="-30%" width="160%" height="160%">
+      <feGaussianBlur stdDeviation="88"/>
+    </filter>
+    <pattern id="grid" width="40" height="40" patternUnits="userSpaceOnUse">
+      <path d="M40 0 H0 V40" fill="none" stroke="#ffffff" stroke-width="1" opacity="0.05"/>
+    </pattern>
+    <radialGradient id="vig" cx="50%" cy="42%" r="78%">
+      <stop offset="55%" stop-color="#000000" stop-opacity="0"/>
+      <stop offset="100%" stop-color="#000000" stop-opacity="0.62"/>
+    </radialGradient>
+    <linearGradient id="floor" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#000000" stop-opacity="0"/>
+      <stop offset="100%" stop-color="#000000" stop-opacity="0.55"/>
+    </linearGradient>
+  </defs>
+
+  <rect width="1280" height="720" fill="#0b1020"/>
+  <ellipse cx="956" cy="150" rx="408" ry="282" fill="#1e3a8a" opacity="0.50" filter="url(#soft)"/><ellipse cx="455" cy="483" rx="417" ry="300" fill="#0891b2" opacity="0.42" filter="url(#soft)"/><ellipse cx="862" cy="628" rx="446" ry="326" fill="#4f46e5" opacity="0.34" filter="url(#soft)"/>
+  <rect width="1280" height="720" fill="url(#grid)"/>
+  <circle cx="1197" cy="531" r="1.6" fill="#22d3ee" opacity="0.29"/><circle cx="596" cy="651" r="1.8" fill="#22d3ee" opacity="0.09"/><circle cx="593" cy="92" r="1.5" fill="#22d3ee" opacity="0.33"/><circle cx="797" cy="453" r="1.6" fill="#22d3ee" opacity="0.35"/><circle cx="87" cy="579" r="1.1" fill="#22d3ee" opacity="0.25"/><circle cx="995" cy="506" r="1.7" fill="#22d3ee" opacity="0.15"/><circle cx="383" cy="532" r="1.9" fill="#22d3ee" opacity="0.17"/><circle cx="304" cy="191" r="1.4" fill="#22d3ee" opacity="0.12"/><circle cx="1175" cy="587" r="2.9" fill="#22d3ee" opacity="0.24"/><circle cx="737" cy="673" r="1.0" fill="#22d3ee" opacity="0.25"/><circle cx="347" cy="315" r="2.8" fill="#22d3ee" opacity="0.30"/><circle cx="1102" cy="691" r="2.1" fill="#22d3ee" opacity="0.16"/><circle cx="27" cy="48" r="1.0" fill="#22d3ee" opacity="0.31"/><circle cx="1049" cy="112" r="0.8" fill="#22d3ee" opacity="0.34"/><circle cx="1058" cy="282" r="1.0" fill="#22d3ee" opacity="0.25"/><circle cx="902" cy="709" r="1.8" fill="#22d3ee" opacity="0.15"/><circle cx="229" cy="250" r="1.3" fill="#22d3ee" opacity="0.30"/><circle cx="874" cy="168" r="2.6" fill="#22d3ee" opacity="0.32"/><circle cx="686" cy="602" r="1.6" fill="#22d3ee" opacity="0.26"/><circle cx="844" cy="151" r="1.4" fill="#22d3ee" opacity="0.24"/><circle cx="9" cy="228" r="2.1" fill="#22d3ee" opacity="0.11"/><circle cx="1001" cy="430" r="1.2" fill="#22d3ee" opacity="0.27"/><circle cx="777" cy="293" r="1.8" fill="#22d3ee" opacity="0.25"/><circle cx="1052" cy="408" r="1.3" fill="#22d3ee" opacity="0.34"/><circle cx="1092" cy="621" r="1.8" fill="#22d3ee" opacity="0.36"/><circle cx="755" cy="613" r="3.0" fill="#22d3ee" opacity="0.14"/><circle cx="517" cy="85" r="2.4" fill="#22d3ee" opacity="0.27"/><circle cx="532" cy="75" r="2.7" fill="#22d3ee" opacity="0.10"/><circle cx="527" cy="283" r="1.8" fill="#22d3ee" opacity="0.14"/><circle cx="146" cy="15" r="1.9" fill="#22d3ee" opacity="0.32"/><circle cx="1166" cy="330" r="1.7" fill="#22d3ee" opacity="0.08"/><circle cx="66" cy="202" r="2.3" fill="#22d3ee" opacity="0.31"/><circle cx="130" cy="214" r="3.0" fill="#22d3ee" opacity="0.19"/><circle cx="574" cy="145" r="1.9" fill="#22d3ee" opacity="0.23"/><circle cx="360" cy="264" r="2.9" fill="#22d3ee" opacity="0.11"/><circle cx="903" cy="247" r="1.2" fill="#22d3ee" opacity="0.15"/><circle cx="300" cy="84" r="2.7" fill="#22d3ee" opacity="0.33"/><circle cx="336" cy="71" r="1.8" fill="#22d3ee" opacity="0.27"/><circle cx="237" cy="569" r="1.1" fill="#22d3ee" opacity="0.35"/><circle cx="888" cy="361" r="2.6" fill="#22d3ee" opacity="0.11"/><circle cx="143" cy="268" r="2.1" fill="#22d3ee" opacity="0.26"/><circle cx="973" cy="637" r="2.6" fill="#22d3ee" opacity="0.31"/><circle cx="1147" cy="690" r="1.4" fill="#22d3ee" opacity="0.27"/><circle cx="572" cy="4" r="2.6" fill="#22d3ee" opacity="0.15"/><circle cx="831" cy="73" r="2.8" fill="#22d3ee" opacity="0.17"/><circle cx="601" cy="382" r="2.0" fill="#22d3ee" opacity="0.21"/>
+  <g opacity="0.96"><path d="M486 268 H954" stroke="#22d3ee" stroke-width="3" opacity="0.85"/>
+    <path d="M600 268 C650 268 650 396 700 396 H780 C830 396 830 268 880 268" fill="none" stroke="#38bdf8" stroke-width="3" opacity="0.9"/>
+    <circle cx="500" cy="268" r="11" fill="#22d3ee"/><circle cx="600" cy="268" r="11" fill="#22d3ee"/><circle cx="840" cy="268" r="11" fill="#22d3ee"/><circle cx="940" cy="268" r="11" fill="#22d3ee"/><circle cx="700" cy="396" r="11" fill="#38bdf8"/><circle cx="780" cy="396" r="11" fill="#38bdf8"/>
+    <rect x="486" y="468" width="468" height="112" rx="12" fill="#000000" opacity="0.42"/>
+    <rect x="486" y="468" width="468" height="112" rx="12" fill="none" stroke="#38bdf8" stroke-width="2" opacity="0.55"/>
+    <path d="M518 504 l22 18 -22 18" fill="none" stroke="#22d3ee" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round"/>
+    <path d="M562 540 h96" stroke="#22d3ee" stroke-width="3.5" stroke-linecap="round" opacity="0.9"/>
+    <rect x="674" y="524" width="13" height="32" fill="#22d3ee" opacity="0.85"/></g>
+  <rect width="1280" height="720" fill="url(#vig)"/>
+  <rect y="460" width="1280" height="260" fill="url(#floor)"/>
+  <g transform="translate(72 502)">
+    <rect x="0" y="0" width="52" height="52" rx="14" fill="#9f1d35"/>
+    <path d="M13 17 h11 a4 4 0 0 1 4 4 v16 a3 3 0 0 0 -3 -3 h-12 Z" fill="#ffffff" opacity="0.95"/>
+    <path d="M39 17 h-11 a4 4 0 0 0 -4 4 v16 a3 3 0 0 1 3 -3 h12 Z" fill="#ffffff" opacity="0.72"/>
+    <text x="70" y="24" font-family="ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif"
+          font-size="21" font-weight="700" fill="#ffffff" letter-spacing="0.4">GyanPath</text>
+    <text x="70" y="46" font-family="ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif"
+          font-size="14" font-weight="600" fill="#ffffff" opacity="0.62" letter-spacing="2.2">CODING</text>
+  </g>
+  <rect x="0" y="714" width="1280" height="6" fill="#9f1d35"/>
+</svg>
